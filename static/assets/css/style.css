@@ -102,7 +102,7 @@ p {
 
 .Common { color: gray; }
 .Uncommon { color: green; }
-.Rare { color: blue; }
+.Rare { color: --poe-color-magic; }
 .Epic { color: purple; }
 .Legendary { color: gold; }
 
@@ -161,7 +161,7 @@ p {
 }
 
 .common { color: gray; }
-.rare { color: blue; }
+.rare { color: --poe-color-magic; }
 .epic { color: purple; }
 .legendary { color: gold; }
 
@@ -307,10 +307,14 @@ body {
     /* background: -webkit-linear-gradient(360deg, rgb(11, 21, 24) 10%, rgb(11, 20, 22) 360%); */
     /* background: linear-gradient(360deg, #030303 10%, #1f1f1f 360%); */
     background-color: rgb(11, 20, 22);
-    font-family: Futura, Trebuchet MS, Arial, sans-serif;
+    font-family: Fontin-SmallCaps, Verdana, Arial, Helvetica, sans-serif;
     font-size: 1rem;
     color: white;
     height: 100vh;
+}
+
+button {
+    font-family: Fontin-SmallCaps, Verdana, Arial, Helvetica, sans-serif !important;
 }
 
 main {
@@ -505,28 +509,32 @@ button:focus {
 }
 
 /* Rarity Colors */
-.Common {
-    color: #ffffff;
+.Common, .normal {
+    color: rgb(200, 200, 200);
 }
 
 .Uncommon {
-    color: #1eff00;
+    color: #88f;
 }
 
 .Rare {
-    color: #0070dd;
+    color: #ff7;
 }
 
 .Epic {
-    color: #a335ee;
+    color: #1ba29b;
 }
 
 .Legendary {
-    color: #ffd700;
+    color: #af6025;
 }
 
 .Heirloom {
     color: #e30b5c;
+}
+
+.poe-item-modifier {
+    color: white !important;
 }
 
 /* HP - Red for health */
@@ -705,11 +713,11 @@ button:focus {
 /* Battle Bars */
 .battle-bar {
     font-size: 0.8rem;
-    border-radius: 0.3rem;
-    -webkit-border-radius: 0.3rem;
+    /* border-radius: 0.3rem; */
+    /* -webkit-border-radius: 0.3rem;
     -moz-border-radius: 0.3rem;
     -ms-border-radius: 0.3rem;
-    -o-border-radius: 0.3rem;
+    -o-border-radius: 0.3rem; */
 }
 
 .bb-hp {
@@ -797,7 +805,7 @@ button:focus {
 }
 
 #character-creation input {
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: Fontin-SmallCaps, Verdana, Arial, Helvetica, sans-serif;
     width: 20rem;
     max-width: calc(100% - 2rem);
 }

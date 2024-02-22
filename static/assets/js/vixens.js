@@ -67,7 +67,7 @@ const applyVixenBonuses = () => {
     // Reset the bonus stats to base values before applying any new bonuses
     player.bonusStats = {
         hp: 0,
-        atk: 555550,
+        atk: 0,
         def: 0,
         atkSpd: 0,
         vamp: 0,

@@ -249,6 +249,19 @@ const showItemInfo = (item, icon, type, i) => {
     };
 }
 
+function generateUniqueRandomString(length) {
+    // Create a random string of a given length
+    let randomString = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < length; i++) {
+        randomString += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    // Add a timestamp to the end of the random string
+    const uniqueRandomString = randomString + Date.now().toString();
+
+    return uniqueRandomString;
+}
 
 const showInventory = () => {
 
@@ -262,19 +275,69 @@ const showInventory = () => {
     for (let i = 0; i < player.inventory.equipment.length; i++) {
         const item = JSON.parse(player.inventory.equipment[i]);
 
+        let equpIcon = equipmentIcons[item.category]
 
+        let uniqueString = generateUniqueRandomString(10);
         let itemDiv = document.createElement('div');
         let icon = equipmentIcon(item.category);
         itemDiv.className = "items";
-        itemDiv.innerHTML = `<p class="${item.rarity}">${icon}${item.rarity} ${item.category}</p>`;
+        let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
+        let formattedStats = item.stats.map(stat => {
+            const statKey = Object.keys(stat)[0];
+            const formattedKey = statKey
+                .replace(/([A-Z])/g, ".$1")
+                .replace(/crit/g, "c")
+                .toUpperCase();
+        
+            if (["critRate", "critDmg", "atkSpd", "vamp"].includes(statKey)) {
+                const value = stat[statKey].toFixed(2).replace(rx, "$1");
+                return `${formattedKey} +${value}%`;
+            } else {
+                return `${formattedKey} +${stat[statKey]}`;
+            }
+        });
+        itemDiv.innerHTML = `<div class="item"><p class="${item.rarity}"><i class='ra ${equpIcon}'><poe-item reference="${uniqueString}" as-text icon-size="md" label-text="${item.rarity} ${item.category}"></poe-item></i></p></div></i>`;
         itemDiv.addEventListener('click', function () {
             let type = "Equip";
             showItemInfo(item, icon, type, i);
         });
-
-
+        if (item.rarity == "Common") {
+            tempRarity = "normal";
+        } else if (item.rarity == "Uncommon") {
+            tempRarity = "magic";
+        } else if (item.rarity == "Rare") {
+            tempRarity = "rare";
+        } else if (item.rarity == "Epic") {
+            tempRarity = "gem";
+        } else if (item.rarity == "Legendary") {
+            tempRarity = "unique";
+        }
+        window.HoradricHelper.PathOfExile.applyConfig({
+            reference: uniqueString,
+            iconUrl: "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetDexUnique2.png",
+            data: {
+            rarity: tempRarity,
+            type: "currency",
+            name: `${item.rarity} ${item.category}`,
+            influences: ["elder"]
+          ,
+            baseName: "Lapis Amulet",
+            sections: {
+                requirements: ["Level 5"],
+                implicits: ["+22 to Intelligence"],
+                modifiers: formattedStats,
+                flavourText: [
+                  "You are slow, foolish and ignorant.",
+                  "I am not."
+                ]
+              }
+            }
+          });
         playerInventoryList.appendChild(itemDiv);
+        console.log("Added item: ", item);
     }
+
+    
 }
 
 

@@ -3,68 +3,72 @@ let enemyDead = false;
 let playerDead = false;
 
 // ========== Validation ==========
-const hpValidation = () => {
-    // Prioritizes player death before the enemy
+const validateHP = () => {
     if (player.stats.hp < 1) {
-        player.stats.hp = 0;
-        playerDead = true;
-        player.deaths++;
-        addCombatLog(`You died!`);
-        document.querySelector("#battleButton").addEventListener("click", function () {
-            sfxConfirm.play();
-            playerDead = false;
-
-            // Reset all the necessary stats and return to menu
-            let dimDungeon = document.querySelector('#dungeon-main');
-            dimDungeon.style.filter = "brightness(100%)";
-            dimDungeon.style.display = "none";
-            combatPanel.style.display = "none";
-            runLoad("title-screen", "flex");
-
-            clearInterval(dungeonTimer);
-            clearInterval(playTimer);
-            progressReset();
-        });
-        endCombat();
+        handlePlayerDeath();
     } else if (enemy.stats.hp < 1) {
-        // Gives out all the reward and show the claim button
-        enemy.stats.hp = 0;
-        enemyDead = true;
-        player.kills++;
-        dungeon.statistics.kills++;
-        addCombatLog(`${enemy.name} died! (${new Date(combatSeconds * 1000).toISOString().substring(14, 19)})`);
-        addCombatLog(`You earned ${nFormatter(enemy.rewards.exp)} exp.`)
-        playerExpGain();
-        addCombatLog(`${enemy.name} dropped <i class="fas fa-coins" style="color: #FFD700;"></i>${nFormatter(enemy.rewards.gold)} gold.`)
-        player.gold += enemy.rewards.gold;
         playerLoadStats();
-        if (enemy.rewards.drop) {
-            createEquipmentPrint("combat");
-        }
-
-        // Recover 20% of players health
-        player.stats.hp += Math.round((player.stats.hpMax * 20) / 100);
-        playerLoadStats();
-
-        // Close the battle panel
-        document.querySelector("#battleButton").addEventListener("click", function () {
-            sfxConfirm.play();
-
-            // Clear combat backlog and transition to dungeon exploration
-            let dimDungeon = document.querySelector('#dungeon-main');
-            dimDungeon.style.filter = "brightness(100%)";
-            bgmDungeon.play();
-
-            dungeon.status.event = false;
-            combatPanel.style.display = "none";
-            enemyDead = false;
-            combatBacklog.length = 0;
-            dungeon.status.exploring = true;
-        });
-        endCombat();
+        handleEnemyDeath();
     }
 }
 
+const handlePlayerDeath = () => {
+    player.stats.hp = 0;
+    playerDead = true;
+    player.deaths++;
+    addCombatLog(`You died!`);
+    document.querySelector("#battleButton").addEventListener("click", function () {
+        sfxConfirm.play();
+        playerDead = false;
+        resetStatsAndReturnToMenu();
+    });
+    endCombat();
+}
+
+const handleEnemyDeath = () => {
+    enemy.stats.hp = 0;
+    enemyDead = true;
+    player.kills++;
+    dungeon.statistics.kills++;
+    addCombatLog(`${enemy.name} died! (${new Date(combatSeconds * 1000).toISOString().substring(14, 19)})`);
+    addCombatLog(`You earned ${nFormatter(enemy.rewards.exp)} exp.`)
+    playerExpGain();
+    addCombatLog(`${enemy.name} dropped <i class="fas fa-coins" style="color: #FFD700;"></i>${nFormatter(enemy.rewards.gold)} gold.`)
+    player.gold += enemy.rewards.gold;
+    playerLoadStats();
+    if (enemy.rewards.drop) {
+        createEquipmentPrint("combat");
+    }
+    player.stats.hp += Math.round((player.stats.hpMax * 20) / 100);
+    playerLoadStats();
+    closeBattlePanel();
+    endCombat();
+}
+
+const resetStatsAndReturnToMenu = () => {
+    let dimDungeon = document.querySelector('#dungeon-main');
+    dimDungeon.style.filter = "brightness(100%)";
+    dimDungeon.style.display = "none";
+    combatPanel.style.display = "none";
+    runLoad("title-screen", "flex");
+    clearInterval(dungeonTimer);
+    clearInterval(playTimer);
+    progressReset();
+}
+
+const closeBattlePanel = () => {
+    document.querySelector("#battleButton").addEventListener("click", function () {
+        sfxConfirm.play();
+        let dimDungeon = document.querySelector('#dungeon-main');
+        dimDungeon.style.filter = "brightness(100%)";
+        bgmDungeon.play();
+        dungeon.status.event = false;
+        combatPanel.style.display = "none";
+        enemyDead = false;
+        combatBacklog.length = 0;
+        dungeon.status.exploring = true;
+    });
+}
 // ========== Attack Functions ==========
 const playerAttack = () => {
     if (!player.inCombat) {
@@ -127,7 +131,7 @@ const playerAttack = () => {
     enemy.stats.hp -= damage;
     player.stats.hp += lifesteal;
     addCombatLog(`${player.name} dealt ` + nFormatter(damage) + ` ${dmgtype} to ${enemy.name}.`);
-    hpValidation();
+    validateHP();
     playerLoadStats();
     enemyLoadStats();
 
@@ -202,7 +206,7 @@ const enemyAttack = () => {
     }
     enemy.stats.hp += lifesteal;
     addCombatLog(`${enemy.name} dealt ` + nFormatter(damage) + ` ${dmgtype} to ${player.name}.`);
-    hpValidation();
+    validateHP();
     playerLoadStats();
     enemyLoadStats();
 

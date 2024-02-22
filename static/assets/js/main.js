@@ -12,12 +12,22 @@ window.addEventListener("load", function () {
     }
 
     function openMenu() {
-        closeInventory();
-        closeTavern();
+        closeAllModals(); // Refactor to a single function to close all modals
         dungeon.status.exploring = false;
-        dimDungeon.style.filter = "brightness(50%)";
+        applyDimFilterToDungeon(); // Refactor to a single function to apply the dim filter
         updateModalContent(menuHtml);
         attachMenuEventListeners();
+    }
+
+    function closeAllModals() {
+        closeInventory();
+        closeMaterial(); // Assuming there's a function to close materials modal as well
+        // Add more close functions for other modals if they exist
+    }
+
+    function applyDimFilterToDungeon() {
+        let dimDungeon = document.querySelector('#dungeon-main');
+        dimDungeon.style.filter = "brightness(50%)";
     }
 
     function closeMenu() {
@@ -27,25 +37,29 @@ window.addEventListener("load", function () {
         dimDungeon.style.filter = "brightness(100%)";
     }
 
+    function updateProfileCloseEvent() {
+        document.querySelector('#profile-close').addEventListener('click', () => {
+            sfxDecline.play();
+            openMenu();
+        });
+    }
+
     function showPlayerStats() {
         sfxOpen.play();
         const playTime = formatTime(player.playtime);
         const playerStatsHtml = `
-      <div class="content" id="profile-tab">
+    <div class="content" id="profile-tab">
         <div class="content-head">
-          <h3>Statistics</h3>
-          <p id="profile-close"><i class="fa fa-xmark"></i></p>
+        <h3>Statistics</h3>
+        <p id="profile-close"><i class="fa fa-xmark"></i></p>
         </div>
         <p>${player.name} Lv.${player.lvl}</p>
         <p>Kills: ${nFormatter(player.kills)}</p>
         <p>Deaths: ${nFormatter(player.deaths)}</p>
         <p>Playtime: ${playTime}</p>
-      </div>`;
+    </div>`;
         updateModalContent(playerStatsHtml);
-        document.querySelector('#profile-close').addEventListener('click', () => {
-            sfxDecline.play();
-            openMenu();
-        });
+        updateProfileCloseEvent();
     }
 
     function showCurrentRun() {
@@ -106,7 +120,7 @@ window.addEventListener("load", function () {
             { selector: '#export-import', handler: showExportImport },
             { selector: '#quit-run', handler: quitRun }
         ];
-    
+
         eventMappings.forEach(mapping => {
             const element = document.querySelector(mapping.selector);
             if (element) { // This check ensures the element exists before trying to attach an event listener
@@ -128,18 +142,8 @@ window.addEventListener("load", function () {
         showModal();
     });
 
-    unenlistAllElement.addEventListener("click", function () {
-        sfxOpen.play();
-        dungeon.status.exploring = false;
-        toggleTavernBrightness(50);
-        showModal();
-    });
-
     defaultModalElement.addEventListener('click', function (e) {
         if (e.target.id === 'unequip-confirm' || e.target.id === 'unequip-cancel') {
-            handleModalButtonClick(e.target.id);
-        }
-        if (e.target.id === 'unenlist-confirm' || e.target.id === 'unenlist-cancel') {
             handleModalButtonClick(e.target.id);
         }
     });
@@ -147,7 +151,6 @@ window.addEventListener("load", function () {
     menuBtnElement.addEventListener("click", openMenu);
     menuBtnElement.addEventListener("click", function () {
         closeInventory();
-        closeTavern();
         dungeon.status.exploring = false;
         let dimDungeon = document.querySelector('#dungeon-main');
         dimDungeon.style.filter = "brightness(50%)";
@@ -171,137 +174,163 @@ window.addEventListener("load", function () {
         let exportImport = document.querySelector('#export-import');
         let volumeSettings = document.querySelector('#volume-btn');
         playerMenu.onclick = function () {
-            sfxOpen.play();
-            let playTime = new Date(player.playtime * 1000).toISOString().slice(11, 19);
-            menuModalElement.style.display = "none";
-            defaultModalElement.style.display = "flex";
+            playSound(sfxOpen);
+            const playTime = formatPlaytime(player.playtime);
+            hideElement(menuModalElement);
+            displayFlex(defaultModalElement);
             defaultModalElement.innerHTML = `
-            <div class="content" id="profile-tab">
-                <div class="content-head">
-                    <h3>Statistics</h3>
-                    <p id="profile-close"><i class="fa fa-xmark"></i></p>
-                </div>
-                <p>${player.name} Lv.${player.lvl}</p>
-                <p>Kills: ${nFormatter(player.kills)}</p>
-                <p>Deaths: ${nFormatter(player.deaths)}</p>
-                <p>Playtime: ${playTime}</p>
-            </div>`;
-            let profileTab = document.querySelector('#profile-tab');
-            profileTab.style.width = "15rem";
-            let profileClose = document.querySelector('#profile-close');
+    <div class="content" id="profile-tab">
+        <div class="content-head">
+            <h3>Statistics</h3>
+            <p id="profile-close"><i class="fa fa-xmark"></i></p>
+        </div>
+        <p>${player.name} Lv.${player.lvl}</p>
+        <p>Kills: ${formatNumber(player.kills)}</p>
+        <p>Deaths: ${formatNumber(player.deaths)}</p>
+        <p>Playtime: ${playTime}</p>
+    </div>`;
+            setElementWidth(document.querySelector('#profile-tab'), "15rem");
+            const profileClose = document.querySelector('#profile-close');
             profileClose.onclick = function () {
-                sfxDecline.play();
-                defaultModalElement.style.display = "none";
-                defaultModalElement.innerHTML = "";
-                menuModalElement.style.display = "flex";
+                playSound(sfxDecline);
+                hideElement(defaultModalElement);
+                clearElement(defaultModalElement);
+                displayFlex(menuModalElement);
             };
         };
-        runMenu.onclick = function () {
-            sfxOpen.play();
-            let runTime = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
-            menuModalElement.style.display = "none";
-            defaultModalElement.style.display = "flex";
-            defaultModalElement.innerHTML = `
-            <div class="content" id="run-tab">
-                <div class="content-head">
-                    <h3>Current Run</h3>
-                    <p id="run-close"><i class="fa fa-xmark"></i></p>
-                </div>
-                <p>${player.name} Lv.${player.lvl} (${player.skills})</p>
-                <p>Blessing Lvl.${player.blessing}</p>
-                <p>Curse Lvl.${Math.round((dungeon.settings.enemyScaling - 1) * 10)}</p>
-                <p>Kills: ${nFormatter(dungeon.statistics.kills)}</p>
-                <p>Runtime: ${runTime}</p>
-            </div>`;
-            let runTab = document.querySelector('#run-tab');
-            runTab.style.width = "15rem";
-            let runClose = document.querySelector('#run-close');
-            runClose.onclick = function () {
-                sfxDecline.play();
-                defaultModalElement.style.display = "none";
-                defaultModalElement.innerHTML = "";
-                menuModalElement.style.display = "flex";
-            };
-        };
+function handleRunMenuClick() {
+    playSound(sfxOpen);
+    const formattedRuntime = formatRuntime(dungeon.statistics.runtime);
+    hideElement(menuModalElement);
+    showFlexElement(defaultModalElement);
+    defaultModalElement.innerHTML = `
+    <div class="content" id="run-tab">
+        <div class="content-head">
+            <h3>Current Run</h3>
+            <p id="run-close"><i class="fa fa-times"></i></p>
+        </div>
+        <p>${player.name} Lv.${player.level} (${player.skills})</p>
+        <p>Blessing Lvl.${player.blessing}</p>
+        <p>Curse Lvl.${Math.round((dungeon.settings.enemyScaling - 1) * 10)}</p>
+        <p>Kills: ${formatNumber(dungeon.statistics.kills)}</p>
+        <p>Runtime: ${formattedRuntime}</p>
+    </div>`;
+    const runTab = document.querySelector('#run-tab');
+    runTab.style.width = "15rem";
+    const runClose = document.querySelector('#run-close');
+    runClose.onclick = function () {
+        playSound(sfxDecline);
+        hideElement(defaultModalElement);
+        clearElement(defaultModalElement);
+        showFlexElement(menuModalElement);
+    };
+}
+
+        runMenu.onclick = handleRunMenuClick;
+
+        function playSound(sound) {
+            sound.play();
+        }
+
+        function formatRuntime(runtime) {
+            return new Date(runtime * 1000).toISOString().slice(11, 19);
+        }
+
+        function hideElement(element) {
+            element.style.display = "none";
+        }
+
+        function showFlexElement(element) {
+            element.style.display = "flex";
+        }
+
+        function clearElement(element) {
+            element.innerHTML = "";
+        }
+
+        function formatNumber(number) {
+            return number.toLocaleString();
+        }
         quitRun.onclick = function () {
-            sfxOpen.play();
-            menuModalElement.style.display = "none";
-            defaultModalElement.style.display = "flex";
-            defaultModalElement.innerHTML = defaultModalElementHtml;
-            let quit = document.querySelector('#quit-run');
-            let cancel = document.querySelector('#cancel-quit');
-            quit.onclick = function () {
-                sfxConfirm.play();
-                bgmDungeon.stop();
-                let dimDungeon = document.querySelector('#dungeon-main');
-                dimDungeon.style.filter = "brightness(100%)";
-                dimDungeon.style.display = "none";
-                menuModalElement.style.display = "none";
-                menuModalElement.innerHTML = "";
-                defaultModalElement.style.display = "none";
-                defaultModalElement.innerHTML = "";
-                runLoad("title-screen", "flex");
-                clearInterval(dungeonTimer);
-                clearInterval(playTimer);
-                progressReset();
-            };
-            cancel.onclick = function () {
-                sfxDecline.play();
-                defaultModalElement.style.display = "none";
-                defaultModalElement.innerHTML = "";
-                menuModalElement.style.display = "flex";
-            };
+            playOpenSound();
+            hideMenuModal();
+            showDefaultModal();
+            let quitButton = document.querySelector('#quit-run');
+            let cancelButton = document.querySelector('#cancel-quit');
+            quitButton.onclick = handleQuit;
+            cancelButton.onclick = handleCancel;
         };
+
+        function handleQuit() {
+            playConfirmSound();
+            stopDungeonMusic();
+            hideAndResetDungeon();
+            clearModals();
+            showTitleScreen();
+            clearTimers();
+            resetProgress();
+        }
+
+        function handleCancel() {
+            playDeclineSound();
+            hideDefaultModal();
+            showMenuModal();
+        }
         volumeSettings.onclick = function () {
             sfxOpen.play();
-            let master = volume.master * 100;
-            let bgm = (volume.bgm * 100) * 2;
-            let sfx = volume.sfx * 100;
+
+            let masterVolume = volume.master * 100;
+            let bgmVolume = (volume.bgm * 100) * 2;
+            let sfxVolume = volume.sfx * 100;
+
             menuModalElement.style.display = "none";
             defaultModalElement.style.display = "flex";
             defaultModalElement.innerHTML = `
-            <div class="content" id="volume-tab">
-                <div class="content-head">
-                    <h3>Volume</h3>
-                    <p id="volume-close"><i class="fa fa-xmark"></i></p>
-                </div>
-                <label id="master-label" for="master-volume">Master (${master}%)</label>
-                <input type="range" id="master-volume" min="0" max="100" value="${master}">
-                <label id="bgm-label" for="bgm-volume">BGM (${bgm}%)</label>
-                <input type="range" id="bgm-volume" min="0" max="100" value="${bgm}">
-                <label id="sfx-label" for="sfx-volume">SFX (${sfx}%)</label>
-                <input type="range" id="sfx-volume" min="0" max="100" value="${sfx}">
-                <button id="apply-volume">Apply</button>
-            </div>`;
-            let masterVol = document.querySelector('#master-volume');
-            let bgmVol = document.querySelector('#bgm-volume');
-            let sfxVol = document.querySelector('#sfx-volume');
-            let applyVol = document.querySelector('#apply-volume');
-            let volumeTab = document.querySelector('#volume-tab');
-            volumeTab.style.width = "15rem";
-            let volumeClose = document.querySelector('#volume-close');
-            volumeClose.onclick = function () {
+    <div class="content" id="volume-tab">
+        <div class="content-head">
+            <h3>Volume</h3>
+            <p id="volume-close"><i class="fa fa-xmark"></i></p>
+        </div>
+        <label id="master-label" for="master-volume">Master (${masterVolume}%)</label>
+        <input type="range" id="master-volume" min="0" max="100" value="${masterVolume}">
+        <label id="bgm-label" for="bgm-volume">BGM (${bgmVolume}%)</label>
+        <input type="range" id="bgm-volume" min="0" max="100" value="${bgmVolume}">
+        <label id="sfx-label" for="sfx-volume">SFX (${sfxVolume}%)</label>
+        <input type="range" id="sfx-volume" min="0" max="100" value="${sfxVolume}">
+        <button id="apply-volume">Apply</button>
+    </div>`;
+
+            let masterVolInput = document.querySelector('#master-volume');
+            let bgmVolInput = document.querySelector('#bgm-volume');
+            let sfxVolInput = document.querySelector('#sfx-volume');
+            let applyVolButton = document.querySelector('#apply-volume');
+            let volumeTabElement = document.querySelector('#volume-tab');
+            volumeTabElement.style.width = "15rem";
+
+            let volumeCloseButton = document.querySelector('#volume-close');
+            volumeCloseButton.onclick = function () {
                 sfxDecline.play();
                 defaultModalElement.style.display = "none";
                 defaultModalElement.innerHTML = "";
                 menuModalElement.style.display = "flex";
             };
-            masterVol.oninput = function () {
-                master = this.value;
-                document.querySelector('#master-label').innerHTML = `Master (${master}%)`;
+
+            masterVolInput.oninput = function () {
+                volume.master = masterVolInput.value / 100;
+                document.querySelector('#master-label').innerHTML = `Master (${masterVolInput.value}%)`;
             };
-            bgmVol.oninput = function () {
-                bgm = this.value;
-                document.querySelector('#bgm-label').innerHTML = `BGM (${bgm}%)`;
+
+            bgmVolInput.oninput = function () {
+                volume.bgm = bgmVolInput.value / 100 / 2;
+                document.querySelector('#bgm-label').innerHTML = `BGM (${bgmVolInput.value}%)`;
             };
-            sfxVol.oninput = function () {
-                sfx = this.value;
-                document.querySelector('#sfx-label').innerHTML = `SFX (${sfx}%)`;
+
+            sfxVolInput.oninput = function () {
+                volume.sfx = sfxVolInput.value / 100;
+                document.querySelector('#sfx-label').innerHTML = `SFX (${sfxVolInput.value}%)`;
             };
-            applyVol.onclick = function () {
-                volume.master = master / 100;
-                volume.bgm = (bgm / 100) / 2;
-                volume.sfx = sfx / 100;
+
+            applyVolButton.onclick = function () {
                 bgmDungeon.stop();
                 setVolume();
                 bgmDungeon.play();
@@ -309,42 +338,42 @@ window.addEventListener("load", function () {
             };
         };
         exportImport.onclick = function () {
-            sfxOpen.play();
+            openSound.play();
             let exportedData = exportData();
             menuModalElement.style.display = "none";
             defaultModalElement.style.display = "flex";
             defaultModalElement.innerHTML = `
-            <div class="content" id="ei-tab">
-                <div class="content-head">
-                    <h3>Export/Import Data</h3>
-                    <p id="ei-close"><i class="fa fa-xmark"></i></p>
-                </div>
-                <h4>Export Data</h4>
-                <input type="text" id="export-input" autocomplete="off" value="${exportedData}" readonly>
-                <button id="copy-export">Copy</button>
-                <h4>Import Data</h4>
-                <input type="text" id="import-input" autocomplete="off">
-                <button id="data-import">Import</button>
-            </div>`;
+    <div class="content" id="ei-tab">
+        <div class="content-head">
+            <h3>Export/Import Data</h3>
+            <p id="ei-close"><i class="fa fa-close"></i></p>
+        </div>
+        <h4>Export Data</h4>
+        <input type="text" id="export-input" autocomplete="off" value="${exportedData}" readonly>
+        <button id="copy-export">Copy</button>
+        <h4>Import Data</h4>
+        <input type="text" id="import-input" autocomplete="off">
+        <button id="data-import">Import</button>
+    </div>`;
             let eiTab = document.querySelector('#ei-tab');
             eiTab.style.width = "15rem";
             let eiClose = document.querySelector('#ei-close');
-            let copyExport = document.querySelector('#copy-export')
-            let dataImport = document.querySelector('#data-import');
+            let copyExportButton = document.querySelector('#copy-export');
+            let dataImportButton = document.querySelector('#data-import');
             let importInput = document.querySelector('#import-input');
-            copyExport.onclick = function () {
-                sfxConfirm.play();
+            copyExportButton.onclick = function () {
+                confirmSound.play();
                 let copyText = document.querySelector('#export-input');
                 copyText.select();
-                copyText.setSelectionRange(0, 99999);
+                copyText.setSelectionRange(0, copyText.value.length);
                 navigator.clipboard.writeText(copyText.value);
-                copyExport.innerHTML = "Copied!";
+                copyExportButton.innerHTML = "Copied!";
             }
-            dataImport.onclick = function () {
+            dataImportButton.onclick = function () {
                 importData(importInput.value);
             };
             eiClose.onclick = function () {
-                sfxDecline.play();
+                declineSound.play();
                 defaultModalElement.style.display = "none";
                 defaultModalElement.innerHTML = "";
                 menuModalElement.style.display = "flex";
@@ -427,7 +456,7 @@ const resetPlayerStats = () => ({
 
 const resetPlayer = () => {
     player.stats.hp = player.stats.hpMax;
-    player.lvl = Math.max(player.lvl - 5, 1);
+    player.level = Math.max(player.level - 5, 1);
     player.blessing = 1;
     Object.assign(player.bonusStats, resetPlayerStats());
     player.skills = [];
@@ -437,14 +466,14 @@ const resetPlayer = () => {
     player.materials = [];
     player.vixens = [
         {
-            "name": "Jinx",
-            "bonus": {
-                "stat": "atk",
-                "value": 10
+            name: "Jinx",
+            bonus: {
+                stat: "atk",
+                value: 10
             },
-            "rarity": "Common"
+            rarity: "Common"
         }
-    ],
+    ];
     player.energy = 10;
     player.maxEnergy = 100;
     player.energyCost = 1;

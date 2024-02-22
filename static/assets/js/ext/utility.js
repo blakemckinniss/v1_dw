@@ -287,7 +287,7 @@ const playSoundEffect = (type) => {
 };
 
 function battleRoutine(){
-    hpValidation();
+    validateHP();
     playerLoadStats();
     enemyLoadStats();
 }
