@@ -475,6 +475,13 @@ main {
     width: 100%;
 }
 
+[class^="ra-"]:before, [class*=" ra-"]:before {
+margin-right: 5px;
+font-size: 14px;
+}
+  
+
+
 /* Buttons */
 button {
     display: inline-block;
@@ -496,6 +503,7 @@ button {
     -ms-transition: .2s;
     -o-transition: .2s;
     -webkit-tap-highlight-color: transparent;
+    margin-bottom: 5px;
 }
 
 button:hover {
