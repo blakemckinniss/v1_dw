@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css?family=Rubik Vinyl" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Rubik+Vinyl" rel="stylesheet" />
   <link rel="stylesheet" href="./assets/css/all.min.css" />
   <link rel="stylesheet" href="./assets/css/rpg-awesome.min.css" />
   <link rel="stylesheet" href="./assets/css/style.css" />
@@ -21,30 +21,50 @@
 <body>
   <main>
     <!-- ===== Rooms ===== -->
-    <!-- Title Screen -->
-    <section id="title-screen" class="game-container">
-      <div>
-        <i class="fa-solid fa-dungeon fa-5x"></i>
-        <h1>DCD</h1>
-      </div>
-      <p>Tap</p>
-    </section>
-    <!-- Character Creation -->
-    <section id="character-creation" class="game-container">
-      <form id="name-submit">
-        <h1>What is your name?</h1>
-        <label for="name-input">Name:</label>
-        <input type="text" id="name-input" autocomplete="off" placeholder="Enter your name" />
-        <p id="alert"></p>
-        <button type="submit">Confirm</button>
-      </form>
-    </section>
     <!-- Hub -->
     <section id="dungeon-main" class="game-container scrollable">
       <section>
         <div class="vixens-wrapper">
           <!-- Container for vixens' Avatars -->
-          <div id="vixensContainer" class="vixens-grid"></div>
+          <div class="vixens-wrapper">
+            <div id="vixensContainer" class="vixens-grid">
+              <div class="vixen-item vixen-4">
+                <div class="vixen-name-top"></div>
+                <div class="card" id="vixen-4">
+                  <img src="https://placehold.co/512x768" alt="vixen Avatar">
+                </div>
+                <div class="vixen-bonus"></div>
+              </div>
+              <div class="vixen-item vixen-3">
+                <div class="vixen-name-top"></div>
+                <div class="card" id="vixen-3">
+                  <img src="https://placehold.co/512x768" alt="vixen Avatar">
+                </div>
+                <div class="vixen-bonus"></div>
+              </div>
+              <div class="vixen-item vixen-1">
+                <div class="vixen-name-top"></div>
+                <div class="card" id="vixen-1">
+                  <img src="https://placehold.co/512x768" alt="vixen Avatar">
+                </div>
+                <div class="vixen-bonus"></div>
+              </div>
+              <div class="vixen-item vixen-2">
+                <div class="vixen-name-top"></div>
+                <div class="card" id="vixen-2">
+                  <img src="https://placehold.co/512x768" alt="vixen Avatar">
+                </div>
+                <div class="vixen-bonus"></div>
+              </div>
+              <div class="vixen-item vixen-5">
+                <div class="vixen-name-top"></div>
+                <div class="card" id="vixen-5">
+                  <img src="https://placehold.co/512x768" alt="vixen Avatar">
+                </div>
+                <div class="vixen-bonus"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
       <section class="primary-bottom">
@@ -69,9 +89,13 @@
               <p id="dungeonAction"></p>
               <p id="floorCount"></p>
               <p id="roomCount"></p>
-              <button id="dungeonActivity" type="button" title="Perform Dungeon Activity">
+              <input id="checkbox" type="checkbox">
+              <label class="switch" id="dungeonActivity" for="checkbox">
+                <i class="ra ra-monster-skull"></i>
+              </label>
+              <!-- <button id="dungeonActivity" type="button" title="Perform Dungeon Activity">
                 Perform Dungeon Activity
-              </button>
+              </button> -->
             </div>
             <div id="dungeonLog"></div>
           </div>
@@ -79,13 +103,8 @@
           <div class="logBox third-panel">
             <div class="dungeon-head">
               <p id="player-name"></p>
-              <p id="player-exp"></p>
               <p id="player-gold"></p>
-              <p>
-                <i class="ra ra-muscle-up"></i>
-                <span id="player-strength">0</span>
-              </p>
-              <p><i class="ra ra-clover"></i> <span id="player-luck">1</span></p>
+
               <p>
                 <i class="ra ra-lightning-bolt"></i>
                 <span id="player-energy">100</span>
@@ -93,20 +112,20 @@
             </div>
             <div class="stat-panel">
               <div class="box boxStat">
-                <p><i class="fas fa-heart"></i> <span id="player-hp"></span></p>
+                <p><i class="ra ra-sword"></i> <span id="player-atk"></span></p>
+                <p><i class="ra ra-hearts"></i> <span id="player-hp"></span></p>
+                <p>
+                  <i class="ra ra-round-shield"></i>
+                  <span id="player-def"></span>
+                </p><br>
                 <p>
                   <i class="ra ra-knife"></i>
                   <span id="player-crate"></span>
                 </p>
                 <p>
-                  <i class="ra ra-round-shield"></i>
-                  <span id="player-def"></span>
-                </p>
-                <p>
                   <i class="ra ra-focused-lightning"></i>
                   <span id="player-cdmg"></span>
-                </p>
-                <p><i class="ra ra-sword"></i> <span id="player-atk"></span></p>
+                </p><br>
                 <p>
                   <i class="ra ra-dripping-blade"></i>
                   <span id="player-vamp"></span>
@@ -114,7 +133,13 @@
                 <p>
                   <i class="ra ra-player-dodge"></i>
                   <span id="player-atkspd"></span>
+                </p><br>
+                <p><i class="ra ra-clover"></i> <span id="player-luck">1</span></p>
+                <p>
+                  <i class="ra ra-muscle-up"></i>
+                  <span id="player-strength">0</span>
                 </p>
+  
               </div>
               <div class="box" id="bonus-stats"></div>
               <div id="buffBanePanel" class="box">
@@ -133,6 +158,34 @@
 
     </section>
     <!-- ===== Modals ===== -->
+
+    <!-- Modal container (hidden by default) -->
+    <div id="vixenModal" class="modal">
+      <div class="modal-content">
+        <!-- Cloned .vixen-item will be inserted here -->
+      </div>
+    </div>
+
+    <div class="modal" id="choicePanel">
+      <div class="content" id="choiceSelect">
+        <h1>Choose One!</h1>
+        <p class="modal-text">You stumble around and hit your head...</p>
+        <div class="content-head">
+          <h4>Remaining: 2</h4>
+          <button id="rerollButton">Reroll 2/2</button>
+        </div><button id="choiceOption0">
+          <h3>ATK UP</h3>
+          <p>Increase ATK UP by 8%.</p>
+        </button><button id="choiceOption1">
+          <h3>HP UP</h3>
+          <p>Increase HP UP by 10%.</p>
+        </button><button id="choiceOption3">
+          <h3>DEF UP</h3>
+          <p>Increase DEF UP by 8%.</p>
+        </button>
+      </div>
+    </div>
+
     <div class="modal-container" id="inventory">
       <div class="content">
         <div class="content-head">
@@ -158,7 +211,7 @@
         <div class="stat-panel">
           <div class="box">
             <div class="box-head">
-              <h4>Equipment</h4>
+              <h4>Trinkets</h4>
               <p id="unequip-all"><i class="fa fa-circle-xmark"></i></p>
             </div>
             <div id="playerEquipment"></div>
@@ -200,42 +253,93 @@
     </div>
     <div class="modal-container" id="equipmentInfo"></div>
     <div class="modal-container" id="vixenInfo"></div>
-    <div class="modal-container" id="combatPanel"></div>
+    <div class="modal-container" id="combatPanel">
+
+      <div class="content">
+
+        <div class="battle-info-panel primary-panel" id="playerPanel">
+          <p id="player-combat-info"></p>
+          <div class="battle-bar empty-bar bb-hp">
+            <div class="battle-bar dmg bb-hp" id="player-hp-dmg"></div>
+            <div class="battle-bar current bb-hp" id="player-hp-battle">
+              <span class="battleTextBar" id="playerHpText" style="position: absolute;"></span>
+            </div>
+          </div>
+          <div class="battle-bar empty-bar bb-xb">
+            <div class="battle-bar current bb-xb" id="player-exp-bar">exp</div>
+          </div>
+          <img id="player-sprite" alt="Skeleton Swordsmaster" width="" src="./assets/img/vixen.jpg" class="">
+        </div>
+
+        <div class="logBox primary-panel">
+          <div id="combatLogBox"></div>
+        </div>
+
+        <div class="battle-info-panel center" id="enemyPanel">
+          <p id="enemy-combat-info"></p>
+          <div class="battle-bar empty-bar hp bb-hp">
+            <div class="battle-bar dmg bb-hp" id="enemy-hp-dmg"></div>
+            <div class="battle-bar current bb-hp" id="enemy-hp-battle">
+              <span class="battleTextBar" id="enemyHpText" style="position: absolute;"></span>
+            </div>
+          </div>
+          <div id="dmg-container"></div>
+          <img id="enemy-sprite" alt="" width="">
+        </div>
+
+      </div>
+
+    </div>
     <div class="modal-container" id="lvlupPanel">
       <div class="content" id="lvlupSelect"></div>
     </div>
+    <div class="modal-container" id="vixenPanel">
+      <div class="content" id="vixelSelect"></div>
+    </div>
+
     <div class="modal-container" id="defaultModal"></div>
     <div class="modal-container" id="menuModal"></div>
     <div class="modal-container" id="confirmationModal"></div>
-    <div class="modal-container" id="materialModal">
+    <div class="modal-container" id="materialModal" style="display: none;">
       <div class="content">
         <div class="content-head">
-          <h4 id="modalMaterialName"></h4>
-          <p onclick="closeMaterial()"><i class="fa fa-xmark"></i></p>
+          <h4 id="modalMaterialName">Base Key (3)</h4>
         </div>
-        <div id="materialActions"></div>
+        <div class="quantity-input">
+          <label for="materialQuantity">Quantity:</label>
+          <input type="number" id="materialQuantity" value="1" min="1" style="width: 50px;">
+        </div>
+        <div id="materialActions">
+          <!-- Action buttons will be added dynamically -->
+        </div>
       </div>
     </div>
+    
   </main>
 
   <section>
-    <div class="vixens-wrapper">
-      <div id="vixensContainer" class="vixens-grid"></div>
-    </div>
+
   </section>
 
   <!-- ===== Utility ===== -->
-  <div id="loading" class="game-container">
+  <!-- <div id="loading" class="game-container">
     <div class="loader"></div>
+  </div> -->
+  <!-- Dev GUI Panel -->
+  <div id="devGuiPanel" style="display: none;">
+    <!-- Add your buttons and inputs here -->
+    <button onclick="testChoiceModal()">Test Choice Modal</button>
+    <!-- Add more elements as needed -->
   </div>
 
+
   </main>
-  <script src="./assets/js/ext/keys.js"></script>
-  <script src="./assets/js/ext/utility.js"></script>
   <script src="./assets/js/ext/elements.js"></script>
+  <script src="./assets/js/ext/keys.js"></script>
+  <script src="./assets/js/ext/tests.js"></script>
+  <script src="./assets/js/ext/utility.js"></script>
   <script src="./assets/js/ext/music.js"></script>
   <script src="./assets/js/ext/log.js"></script>
-  <script src="./assets/js/ext/tests.js"></script>
   <script src="./assets/js/ext/messages.js"></script>
   <script src="./assets/js/statusEffects.js"></script>
   <script src="./assets/js/player.js"></script>
@@ -248,9 +352,6 @@
   <script src="./assets/js/enemy.js"></script>
   <script src="./assets/js/main.js"></script>
   <script src="./assets/js/materials.js"></script>
-  <script>
-
-  </script>
-</body>
+  </div>
 
 </html>

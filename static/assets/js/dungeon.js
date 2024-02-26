@@ -1,10 +1,24 @@
-// ===== Dungeon Setup =====
-// Enables start and pause on button click
-dungeonActivity.addEventListener('click', function () {
-    dungeonStartPause();
-});
 
-// Sets up the initial dungeon
+function toggleDungeonActivity() {
+    if (player.inCombat) {
+        return;
+    }
+    
+    const isExploring = dungeonActivityElement.innerHTML === `<i class="ra ra-monster-skull"></i>`;
+    console.log(isExploring ? "starting to explore" : "paused");
+    
+    dungeonActivityElement.innerHTML = isExploring ? `<i class="ra ra-desert-skull"></i>` : `<i class="ra ra-monster-skull"></i>`;
+    pauseSwitch(isExploring, false, !isExploring);
+    
+    dungeon.backlog.length = 0;
+    updateDungeonLog();
+    
+    const spinnerClass = isExploring ? "spinner-explore" : "spinner-rest";
+    dungeonAction.innerHTML = `<div class="${spinnerClass}"><div class="spinner1"></div>`;
+}
+
+dungeonActivityElement.addEventListener('click', toggleDungeonActivity);
+
 const initialDungeonLoad = () => {
     if (localStorage.getItem("dungeonData") !== null) {
         dungeon = JSON.parse(localStorage.getItem("dungeonData"));
@@ -13,144 +27,130 @@ const initialDungeonLoad = () => {
             paused: true,
             event: false,
         };
+        dungeon.backlog.length = 0;
         updateDungeonLog();
     }
     loadDungeonProgress();
-    dungeonTime.innerHTML = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
-    dungeonAction.innerHTML = "Resting...";
-    dungeonActivity.innerHTML = "Explore";
-    dungeonTime.innerHTML = "00:00:00";
-    dungeonTimer = setInterval(dungeonEvent, 1000);
+    dungeonTimeElement.innerHTML = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
+    dungeonAction.innerHTML = '<div class="spinner-rest"><div class="spinner1"></div>';
+    dungeonActivityElement.innerHTML = `<i class="ra ra-monster-skull"></i>`;
+    dungeonTimeElement.innerHTML = "00:00:00";
+    dungeonTimer = setInterval(dungeonEvent, 5000);
     playTimer = setInterval(dungeonCounter, 1000);
+    setUpRegenTimers();
+    logContainerElement.innerHTML = '';
 }
 
 const updateDungeonUI = (isPaused) => {
-    dungeonAction.innerHTML = isPaused ? "Resting..." : "Exploring...";
-    dungeonActivity.innerHTML = isPaused ? "Explore" : "Pause";
+    dungeonAction.innerHTML = isPaused ? '<div class="spinner-rest"><div class="spinner1"></div>' : '<div class="spinner-explore"><div class="spinner1"></div>';
+    dungeonActivityElement.innerHTML = isPaused ? "Explore" : "Pause";
 };
 
-const dungeonStartPause = () => {
-    const { paused, exploring } = dungeon.status;
-    dungeon.status.paused = !paused;
-    dungeon.status.exploring = !exploring;
-    paused ? sfxUnpause.play() : sfxPause.play();
-    updateDungeonUI(!paused);
+function pauseSwitch(isExploring = false, isEvent = false, isPaused = true) {
+    dungeon.status.exploring = isExploring;
+    dungeon.status.event = isEvent;
+    dungeon.status.paused = isPaused;
+    console.log("Exploring: ", dungeon.status.exploring, " Event: ", dungeon.status.event, " Paused: ", dungeon.status.paused);
 };
 
-// Counts the total time for the current run and total playtime
 const dungeonCounter = () => {
     player.playtime++;
     dungeon.statistics.runtime++;
     dungeonTime.innerHTML = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
     saveData();
 }
-
-// Loads the floor and room count
 const loadDungeonProgress = () => {
     if (dungeon.progress.room > dungeon.progress.roomLimit) {
         dungeon.progress.room = 1;
         dungeon.progress.floor++;
     }
-    floorCount.innerHTML = `Floor ${dungeon.progress.floor}`;
-    roomCount.innerHTML = `Room ${dungeon.progress.room}`;
+    floorCountElement.innerHTML = `Floor ${dungeon.progress.floor}`;
+    roomCountElement.innerHTML = `Room ${dungeon.progress.room}`;
 }
 
 const disarmTrap = (trapType) => {
-    let successChance = Math.random() < 0.5; // Simplified success chance calculation
+    let successChance = Math.random() < 0.5; 
     if (successChance) {
-        logDungeonEvent(`You successfully disarmed the ${trapType}.`);
+        addDungeonLog(`You successfully disarmed the ${trapType}.`);
     } else {
-        logDungeonEvent(`You failed to disarm the ${trapType} and took damage.`);
-        playerTakeDamage(); // Implement damage to the player
+        addDungeonLog(`You failed to disarm the ${trapType} and took damage.`);
+        playerTakeDamage(); 
     }
-    dungeon.status.event = false;
 };
 
 const evadeTrap = (trapType) => {
-    let successChance = Math.random() < 0.7; // Simplified success chance calculation
+    let successChance = Math.random() < 0.7; 
     if (successChance) {
-        logDungeonEvent(`You successfully evaded the ${trapType}.`);
+        addDungeonLog(`You successfully evaded the ${trapType}.`);
     } else {
-        logDungeonEvent(`You failed to evade the ${trapType} and took damage.`);
-        playerTakeDamage(); // Implement damage to the player
+        addDungeonLog(`You failed to evade the ${trapType} and took damage.`);
+        playerTakeDamage(); 
     }
-    dungeon.status.event = false;
 };
 
 const playerTakeDamage = () => {
-    const damage = calculateTrapDamage(); // Implement trap damage calculation
+    const damage = calculateTrapDamage(); 
     player.stats.hp -= damage;
     if (player.stats.hp <= 0) {
-        // Handle player death
+        
     }
-    playerLoadStats(); // Refresh player stats display
+    playerLoadStats(); 
 };
 
 function getBonusIcon(stat) {
     return iconMap[stat] || "ra ra-question";
 }
 
-// ========= Dungeon Choice Events ==========
-// Starts the battle
 const engageBattle = () => {
     showCombatInfo()
-    startCombat(bgmBattleMain);
+    startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`You encountered ${enemy.name}.`);
     updateDungeonLog();
 }
-
-// Mimic encounter
 const mimicBattle = (type) => {
     generateRandomEnemy(type);
     showCombatInfo()
-    startCombat(bgmBattleMain);
+    startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`You encountered ${enemy.name}.`);
     addDungeonLog(`You encountered ${enemy.name}.`);
 }
 
-// Guardian boss fight
 const guardianBattle = () => {
     incrementRoom();
     generateRandomEnemy("guardian");
     showCombatInfo()
-    startCombat(bgmBattleGuardian);
+    startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`Floor Guardian ${enemy.name} is blocking your way.`);
     addDungeonLog("You moved to the next floor.");
 }
 
-// Guardian boss fight
 const specialBossBattle = () => {
     generateRandomEnemy("sboss");
     showCombatInfo()
-    startCombat(bgmBattleBoss);
+    startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`Dungeon Monarch ${enemy.name} has awoken.`);
     addDungeonLog(`Dungeon Monarch ${enemy.name} has awoken.`);
 }
 
-// Flee from the monster
 const fleeBattle = () => {
     let eventRoll = randomizeNum(1, 2);
     if (eventRoll == 1) {
-        sfxConfirm.play();
-        logDungeonEvent(`You managed to flee.`);
+        addDungeonLog(`You managed to flee.`);
         player.inCombat = false;
-        dungeon.status.event = false;
     } else {
         addDungeonLog(`You failed to escape!`);
         showCombatInfo()
-        startCombat(bgmBattleMain);
+        startCombat();
         addCombatLog(`You encountered ${enemy.name}.`);
         addCombatLog(`You failed to escape!`);
     }
 }
 
-// Chest event randomizer
 const chestEvent = () => {
-    sfxConfirm.play();
     let eventRoll = randomizeNum(1, 4);
     if (eventRoll == 1) {
         mimicBattle("chest");
@@ -160,26 +160,22 @@ const chestEvent = () => {
         } else {
             createEquipmentPrint("dungeon");
         }
-        logDungeonEvent
+        addDungeonLog("You found some loot.");
     } else if (eventRoll == 3) {
         goldDrop();
-        logDungeonEvent
+        addDungeonLog("You found some gold.");
     } else {
-        logDungeonEvent("The chest is empty.");
+        addDungeonLog("The chest is empty.");
     }
-    dungeon.status.exploring = true;
 }
 
-// Calculates Gold Drop
 const goldDrop = () => {
-    sfxSell.play();
     let goldValue = randomizeNum(50, 500) * dungeon.progress.floor;
-    addDungeonLog(`You found <i class="fas fa-coins" style="color: #FFD700;"></i>${nFormatter(goldValue)}.`);
+    addDungeonLog(`You found <i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(goldValue)}.`);
     player.gold += goldValue;
     playerLoadStats();
 }
 
-// Non choices dungeon event messages
 const nothingEvent = () => {
     let eventRoll = randomizeNum(1, 5);
     if (eventRoll == 1) {
@@ -196,7 +192,6 @@ const nothingEvent = () => {
 }
 
 const statBlessing = () => {
-    sfxBuff.play();
     const statValues = {
         hp: 10,
         atk: 8,
@@ -212,7 +207,7 @@ const statBlessing = () => {
 
     player.bonusStats[buff] += value;
 
-    // Format buff name for display
+    
     const formattedBuffName = buff.replace(/([A-Z])/g, " $1").replace("crit", "Crit").toLowerCase();
     addDungeonLog(`You gained ${value}% bonus ${formattedBuffName} from the blessing. (Blessing Lv.${player.blessing} > Blessing Lv.${player.blessing + 1})`);
 
@@ -221,43 +216,27 @@ const statBlessing = () => {
     saveData();
 }
 
-// Cursed totem offering
 const cursedTotem = (curseLvl) => {
-    sfxBuff.play();
     dungeon.settings.enemyScaling += 0.1;
     addDungeonLog(`The monsters in the dungeon became stronger and the loot quality improved. (Curse Lv.${curseLvl} > Curse Lv.${curseLvl + 1})`);
     saveData();
 }
 
-// Ignore event and proceed exploring
 const ignoreEvent = () => {
-    sfxConfirm.play();
-    logDungeonEvent("You ignored it and decided to move on.");
+    addDungeonLog("You ignored it and decided to move on.");
 }
 
-// Ignore event and proceed exploring
-const logDungeonEvent = (logDungeonMessage) => {
-    sfxConfirm.play();
-    if (logDungeonMessage) {
-        addDungeonLog(logDungeonMessage);
-    }
-    toggleExploring(dungeon);
-}
-
-// Increase room or floor accordingly
 const incrementRoom = () => {
     dungeon.progress.room++;
     dungeon.action = 0;
     loadDungeonProgress();
 }
 
-// Increases player total blessing
 const blessingUp = () => {
     blessingValidation();
     player.blessing++;
 }
 
-// Validates whether blessing exists or not
 const blessingValidation = () => {
     if (player.blessing == undefined) {
         player.blessing = 1;

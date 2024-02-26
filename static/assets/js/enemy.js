@@ -570,7 +570,6 @@ const setEnemyImg = () => {
 
 const enemyLoadStats = () => {
     // Shows proper percentage for respective stats
-    let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     if (enemy.stats.hp > enemy.stats.hpMax) {
         enemy.stats.hp = enemy.stats.hpMax;
     }
@@ -578,7 +577,8 @@ const enemyLoadStats = () => {
 
     const enemyHpElement = document.querySelector('#enemy-hp-battle');
     const enemyHpDamageElement = document.querySelector('#enemy-hp-dmg');
-    enemyHpElement.innerHTML = `&nbsp${nFormatter(enemy.stats.hp)}/${nFormatter(enemy.stats.hpMax)}<br>(${enemy.stats.hpPercent}%)`;
+    
+    enemyHpElement.innerHTML = `<span class="battleTextBar" id="enemyHpText" style="position: absolute;">&nbsp${nFormatter(enemy.stats.hp)}/${nFormatter(enemy.stats.hpMax)}&nbsp(${enemy.stats.hpPercent}%)</span>`;
     enemyHpElement.style.width = `${enemy.stats.hpPercent}%`;
     enemyHpDamageElement.style.width = `${enemy.stats.hpPercent}%`;
     console.log(`Enemy HP: ${enemy.stats.hp}/${enemy.stats.hpMax} (${enemy.stats.hpPercent}%)`);

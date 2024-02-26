@@ -1,3 +1,44 @@
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'q' || event.key === 'Q') {
+        var devGuiPanel = document.getElementById('devGuiPanel');
+        if (devGuiPanel.style.display === 'none') {
+            devMode = true;
+            devGuiPanel.style.display = 'block';
+        } else {
+            devMode = false;
+            devGuiPanel.style.display = 'none';
+        }
+    }
+});
+
+function testChoiceModal() {
+    buttonChoices = [
+        {
+            title: 'C1',
+            description: 'Choice 1'
+        },
+        {
+            title: 'C2',
+            description: 'Choice 2'
+        },
+        {
+            title: 'C3',
+            description: 'Choice 3'
+        }
+    ];
+    buttonChoicesSettings = {
+        callToAction: 'Call To Action!',
+        remainingChoices: 3,
+        rerollChances: '1/1',
+        message: 'Test message for testing stuff on choice modal'
+    };
+    console.log('Test function executed', buttonChoicesSettings.callToAction);
+    choiceOneAction = () => raiseAtk(0.8);
+    choiceTwoAction = () => raiseAtk(0.8);
+    choiceThreeAction = () => raiseAtk(0.8);
+    toggleChoicePanel(buttonChoices, buttonChoicesSettings);
+}
+
 function addTestBuff() {
     const name = "Blessing of Wealth";
     const durationMinutes = 3; // 3 minutes for testing

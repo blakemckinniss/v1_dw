@@ -1,117 +1,164 @@
-function addMaterial(material) {
-    const existingMaterial = player.materials.find(m => m.name === material.name);
-    const addedWeight = player.currentWeight() + (material.weight * material.quantity);
-
-    if (addedWeight <= player.maxWeight) {
-        if (existingMaterial && (existingMaterial.quantity + material.quantity) <= existingMaterial.maxStack) {
-            existingMaterial.quantity += material.quantity;
-        } else if (!existingMaterial) {
-            player.materials.push(material);
-        }
-        updateMaterialsDisplay();
-    } else {
-        console.log("Cannot acquire more materials due to weight limit.");
-        // Add a log message to the user interface, if needed
+function updateMaterialQuantity(material, quantityToAdd) {
+    const newQuantity = material.quantity + quantityToAdd;
+    if (newQuantity > material.maxStack) {
+        addDungeonLogPaused(stackLimitMessage);
+        return false;
     }
+    material.quantity = newQuantity;
+    return true;
 }
+
+function addMaterial(materialData) {
+    const defaults = { weight: 1, quantity: 1, sellValue: 1, rarity: defaultMaterialRarity, maxStack: 100, icon: defaultMaterialIcon };
+    const material = { ...defaults, ...materialData };
+    material.icon = materialIconTemplate(material); 
+
+    if (player.currentWeight() + material.weight * material.quantity > player.maxWeight) {
+        addDungeonLogPaused(weightLimitMessage);
+        return;
+    }
+
+    addDungeonLogPaused(quantityAddedMessage(material.name, material.quantity));
+    const existingMaterial = player.materials.find(m => m.name === material.name);
+    existingMaterial ? updateMaterialQuantity(existingMaterial, material.quantity) : player.materials.push(material);
+    updateMaterialsDisplay();
+}
+
+function removeMaterial(materialName, quantityToRemove) {
+    const index = player.materials.findIndex(material => material.name === materialName);
+    if (index === -1) {
+        addDungeonLogPaused(materialNotFoundMessage(materialName));
+        return;
+    }
+    const material = player.materials[index];
+    if (quantityToRemove >= material.quantity) {
+        player.materials.splice(index, 1);
+        addDungeonLogPaused(materialRemovedTemplate(materialName));
+    } else {
+        material.quantity -= quantityToRemove;
+        addDungeonLogPaused(quantityToRemoveMessage(materialName, quantityToRemove));
+    }
+    updateMaterialsDisplay();
+}
+
 function updateMaterialsDisplay() {
     const materialsPanel = document.querySelector("#materialsPanel");
-    materialsPanel.innerHTML = "<div class='bagTitle'><h4></h4></div>";
-
-    player.materials.forEach((material, index) => {
-        const materialElement = document.createElement("p");
-        // Check if icon is defined and not empty, otherwise use fallback
-        const iconSrc = material.icon && material.icon.trim() !== "" ? material.icon : "/assets/materials/loot_bag.png";
-        materialElement.innerHTML = `<img src="${iconSrc}" alt="${material.name} Icon" style="width: 32px; height: 32px; margin-top: 0px; vertical-align: middle;"> <span class="${material.rarity}">${material.name} (${material.quantity})</span>`;
-        // materialElement.innerHTML = `<span class="${material.rarity}">${material.name} (${material.quantity})</span>`;
-        materialElement.classList.add("clickable-material");
-        materialElement.addEventListener("click", () => openMaterialModal(material, index));
-        materialsPanel.appendChild(materialElement);
+    materialsPanel.innerHTML = player.materials.map(material => materialDisplayTemplate(material)).join('');
+    
+    const clickableMaterials = materialsPanel.querySelectorAll('.clickable-material');
+    clickableMaterials.forEach((element, index) => {
+        element.addEventListener('click', () => openMaterialModal(player.materials[index], index));
     });
 }
 
-function openMaterialModal(material, index) {
-    const modal = document.querySelector("#materialModal");
-    document.querySelector("#modalMaterialName").textContent = `${material.name} (${material.quantity})`;
-    const actionsContainer = document.querySelector("#materialActions");
-    actionsContainer.innerHTML = ""; // Clear previous actions
+function setupMaterialActionButton(text, action, material, container) {
+    const button = document.createElement("button");
+    button.textContent = text;
 
-    // Conditionally add Sell or Use option
-    if (material.sellValue && material.quantity > 1) {
-        const sellInput = document.createElement("input");
-        sellInput.type = "number";
-        sellInput.min = "1";
-        sellInput.max = material.quantity.toString();
-        sellInput.value = "1"; // Default to 1
-        sellInput.id = "sellQuantityInput";
-        actionsContainer.appendChild(sellInput);
-
-        const sellButton = document.createElement("button");
-        sellButton.textContent = "Sell";
-        sellButton.onclick = () => sellMaterial(index, parseInt(sellInput.value));
-        actionsContainer.appendChild(sellButton);
-    } else if (material.sellValue) {
-        const sellButton = document.createElement("button");
-        sellButton.textContent = "Sell";
-        sellButton.onclick = () => sellMaterial(index, 1);
-        actionsContainer.appendChild(sellButton);
-    }
-
-
-    // Always add Drop option
-    const dropButton = document.createElement("button");
-    dropButton.textContent = "Drop";
-    dropButton.addEventListener("click", () => dropMaterial(index));
-    actionsContainer.appendChild(dropButton);
-
-    modal.style.display = "flex"; // Show the modal
-    // document.querySelector(".close").addEventListener("click", () => modal.style.display = "none");
+    button.onclick = () => {
+        if (material && material.quantity > 0) {
+            action(material.quantity);
+            closeMaterialModal();
+        } else {
+            addDungeonLogPaused("Invalid quantity or no material selected.");
+        }
+    };
+    container.appendChild(button);
 }
+
+function openMaterialModal(material, index) {
+    updateModalContent(material);
+    setupMaterialActionButtons(material, index);
+    const materialModalElement = document.querySelector("#materialModal");
+    materialModalElement.style.display = "flex";
+}
+
+function updateModalContent(material) {
+    document.querySelector("#modalMaterialName").innerHTML = `<img src="${material.icon}" alt="${material.name} Icon" style="width: 32px; height: 32px; vertical-align: middle; margin-top: 0px; margin-right: 10px;">${material.name} (${material.quantity})`;
+    document.querySelector("#materialActions").innerHTML = "";
+}
+
+function setupMaterialActionButtons(material, index) {
+    const container = document.querySelector("#materialActions");
+    if (!container) {
+        console.error("Failed to find #materialActions container.");
+        return;
+    }
+    
+    container.innerHTML = "";
+
+    let materialModal = document.querySelector("#materialModal");
+    window.addEventListener('click', function(event) {
+        if (event.target == materialModal) {
+            closeMaterialModal();
+        }
+    });
+    
+    setupMaterialActionButton("Sell", (quantity) => sellMaterial(index, quantity), material, container);
+    setupMaterialActionButton("Drop", (quantity) => dropMaterial(index, quantity), material, container);
+}
+
+function setupMaterialActionButton(text, action, material, container) {
+    const button = document.createElement("button");
+    button.textContent = text;
+    button.onclick = () => {
+        
+        const quantityInput = document.querySelector("#materialQuantity");
+        const inputQuantity = parseInt(quantityInput.value, 10);
+        
+        
+        if (!isNaN(inputQuantity) && inputQuantity > 0) {
+            
+            action(inputQuantity);
+        } else {
+            addDungeonLogPaused("Invalid quantity.");
+        }
+    };
+    container.appendChild(button);
+}
+
 
 function sellMaterial(index, quantityToSell) {
     const material = player.materials[index];
-    // Use the quantityToSell from the input box, ensure it doesn't exceed available quantity
-    quantityToSell = Math.min(quantityToSell, material.quantity);
+    const sellQuantity = Math.min(quantityToSell, material.quantity);
     
-    if (quantityToSell > 0) {
-        player.gold += quantityToSell * material.sellValue;
-        material.quantity -= quantityToSell;
-        if (material.quantity === 0) {
-            player.materials.splice(index, 1); // Remove material if quantity is 0
-        }
-        updateMaterialsDisplay();
-        playerLoadStats(); // Assuming this updates gold display
-    }
-    closeMaterial();
-}
-
-function useMaterial(index) {
-    // Implementation depends on how 'use' affects the game
-    closeMaterial();
-}
-
-function dropMaterial(index) {
-    const material = player.materials[index];
-    let quantityToDrop = parseInt(prompt("Enter quantity to drop:"));
-    if (quantityToDrop > 0 && quantityToDrop <= material.quantity) {
-        material.quantity -= quantityToDrop;
+    if (sellQuantity > 0) {
+        player.gold += sellQuantity * material.sellValue; 
+        material.quantity -= sellQuantity; 
+        
         if (material.quantity === 0) {
             player.materials.splice(index, 1);
         }
+        
         updateMaterialsDisplay();
+        closeMaterialModal(`Sold ${sellQuantity} ${material.name} for ${sellQuantity * material.sellValue} gold.`);
+    } else {
+        addDungeonLogPaused("Invalid quantity to sell.");
     }
-    closeMaterial();
 }
 
-// Closes inventory
-const closeMaterial = () => {
-    sfxDecline.play();
-    let openMat = document.querySelector('#materialModal');
-    let dimDungeon = document.querySelector('#dungeon-main');
-    openMat.style.display = "none";
-    dimDungeon.style.filter = "brightness(100%)";
-    materialOpen = false;
-    if (!dungeon.status.paused) {
-        dungeon.status.exploring = true;
+function dropMaterial(index, quantityToDrop) {
+    const material = player.materials[index];
+    const dropQuantity = Math.min(quantityToDrop, material.quantity);
+    
+    if (dropQuantity > 0) {
+        material.quantity -= dropQuantity; 
+        
+        if (material.quantity === 0) {
+            player.materials.splice(index, 1);
+        }
+        
+        updateMaterialsDisplay();
+        closeMaterialModal(`Dropped ${dropQuantity} ${material.name}.`);
+    } else {
+        addDungeonLogPaused("Invalid quantity to drop.");
+    }
+}
+
+function closeMaterialModal(message = null) {
+    const modal = document.querySelector('#materialModal');
+    modal.style.display = "none";
+    if (message) {
+        addDungeonLogPaused(message);
     }
 }

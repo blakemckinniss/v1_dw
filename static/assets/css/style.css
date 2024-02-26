@@ -12,8 +12,55 @@
     user-select: none;
 }
 
+html,
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /* Prevents scrolling by hiding overflow */
+    height: 100vh;
+    /* Sets the body to the full height of the viewport */
+}
+
+#dungeon-main {
+    display: flex;
+    /* Uses Flexbox for layout */
+    flex-direction: column;
+    /* Stacks children vertically */
+    height: 100vh;
+    /* Full viewport height */
+}
+
+.header,
+.footer {
+    flex: 0 1 auto;
+    /* Don't grow, but can shrink */
+}
+
+section {
+    flex: 1 1 auto;
+    /* Grow to fill available space */
+    overflow: hidden;
+    /* If main content overflows, enable scroll *inside* the main content only */
+    scale: 0.97;
+}
+
+:root {
+    --common: linear-gradient(45deg, #ffffff, #a4a4a4);
+    --uncommon: linear-gradient(45deg, #00ff00, #075300);
+    --rare: linear-gradient(45deg, #00ffff, #0000ff);
+    --epic: linear-gradient(45deg, #ff00ff, #350030);
+    --legendary: linear-gradient(45deg, #ff0000, #9a1919);
+    --mythic: linear-gradient(45deg, #ffff00, #da8300);
+}
+
 p {
     padding-bottom: 2px;
+}
+
+sup {
+    font-size: 10px;
+    margin-left: 3px;
 }
 
 .positive {
@@ -27,32 +74,32 @@ p {
 .negative {
     color: red;
 }
-/* .stat-panel {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
-}
 
-.stats, .bonus-stats, .vixens {
-    flex: 1;
-    margin: 5px;
-} */
+.stat-panel {
+    height: 100%;
+}
 
 /* Style the buffs-banes-panel to also use flexbox */
 .buffs-banes-panel {
     display: flex;
-    flex-direction: column; /* This makes the buffs and banes sit side by side */
-    justify-content: space-between; /* This spreads the buffs and banes apart */
-    width: 100%; /* Adjust the width as needed */
+    flex-direction: column;
+    /* This makes the buffs and banes sit side by side */
+    justify-content: space-between;
+    /* This spreads the buffs and banes apart */
+    width: 100%;
+    /* Adjust the width as needed */
     text-align: center;
     text-wrap: balance;
     font-size: 11px;
 }
 
 /* Style the buffs and banes to take up equal space */
-.buffs, .banes {
-    flex: 1; /* This allows the buffs and banes to grow and take up equal space */
-    margin: 0 10px; /* Adds some space between the buffs and banes */
+.buffs,
+.banes {
+    flex: 1;
+    /* This allows the buffs and banes to grow and take up equal space */
+    margin: 0 10px;
+    /* Adds some space between the buffs and banes */
 }
 
 /* Add your color coding for buffs and banes */
@@ -65,7 +112,8 @@ p {
 }
 
 /* Additional styling for headings or other elements as needed */
-.buffs h4, .banes h4 {
+.buffs h4,
+.banes h4 {
     text-align: center;
     /* Add more styling as needed */
 }
@@ -78,33 +126,61 @@ p {
     color: red;
 }
 
-.vixens h3, .stats h3, .bonus-stats h3 {
+.vixens h3,
+.stats h3,
+.bonus-stats h3 {
     text-align: center;
 }
 
 /* Add specific styles for vixens */
 .vixens p {
-    color: #ddd; /* Adjust based on your design */
+    color: #ddd;
+    /* Adjust based on your design */
     margin: 5px 0;
 }
 
 
 
 /* Rarity color coding */
-.Common { color: gray; }
-.Rare { color: green; }
-.Epic { color: purple; }
-.Legendary { color: gold; }
+.Common {
+    color: gray;
+}
+
+.Rare {
+    color: green;
+}
+
+.Epic {
+    color: purple;
+}
+
+.Legendary {
+    color: gold;
+}
 
 .materials p {
     margin: 5px 0;
 }
 
-.Common { color: gray; }
-.Uncommon { color: green; }
-.Rare { color: --poe-color-magic; }
-.Epic { color: purple; }
-.Legendary { color: gold; }
+.Common {
+    color: gray;
+}
+
+.Uncommon {
+    color: green;
+}
+
+.Rare {
+    color: blue;
+}
+
+.Epic {
+    color: purple;
+}
+
+.Legendary {
+    color: gold;
+}
 
 #dungeonLog {
     text-align: center;
@@ -116,54 +192,82 @@ p {
     margin: 2px 0;
     font-size: 14px;
 }
+
 .log-exploration {
     color: #76A5AF;
 }
+
 .log-combat {
     color: #D9534F;
 }
+
 .log-inventory {
     color: #5CB85C;
 }
+
 .log-tavern {
     color: #9e67f1;
 }
+
 .log-general {
     color: #F0F0F0;
 }
 
-.rarity-common { color: gray; }
-.rarity-rare { color: blue; }
-.rarity-epic { color: purple; }
-.rarity-legendary { color: gold; }
+.rarity-common {
+    color: gray;
+}
+
+.rarity-rare {
+    color: blue;
+}
+
+.rarity-epic {
+    color: purple;
+}
+
+.rarity-legendary {
+    color: gold;
+}
+
 /* Default style for subjects without a defined rarity or if the rarity is unrecognized */
-.rarity { color: #FFFFFF; /* Fallback color, adjust as needed */ }
+.rarity {
+    color: #FFFFFF;
+    /* Fallback color, adjust as needed */
+}
 
 .vixens-grid {
-    display: flex;
+    display: inline-flex;
     flex-wrap: wrap;
-    justify-content: space-around; /* Adjust based on layout needs */
-    width: 80vw; /* Ensures the grid takes full width of its container */
-    max-width: 80vw; /* Adjust this value based on desired maximum width */
-    margin: auto; /* Center the grid horizontally */
+    justify-content: center;
+    width: 100%;
+    margin: auto;
+    gap: 15px;
+    max-width: 80%;
 }
 
 .vixen-item {
-    margin-top: 15px;
-    margin-bottom: 15px;
-    aspect-ratio: 1 / 1;
-    width: calc(33.333% - 10px); /* 3 items per row, accounting for gap */
-    max-width: 20%;
+    max-width: 19%;
     max-height: 384px;
-    flex-grow: 1; /* Allows items to grow to fill available space */
-    flex-shrink: 0; /* Prevents items from shrinking below their set width */
+    flex-grow: 1;
+    flex-shrink: 0;
     text-align: center;
 }
 
-.common { color: gray; }
-.rare { color: --poe-color-magic; }
-.epic { color: purple; }
-.legendary { color: gold; }
+.common {
+    color: gray;
+}
+
+.rare {
+    color: --poe-color-magic;
+}
+
+.epic {
+    color: purple;
+}
+
+.legendary {
+    color: gold;
+}
 
 /* .vixen-item {
     flex-direction: column;
@@ -172,50 +276,67 @@ p {
 } */
 
 .vixen-name-top {
-    font-weight: bold; /* Example styling */
-    margin-bottom: 5px; /* Space above the image */
+    font-weight: bold;
+    /* Example styling */
+    margin-bottom: 5px;
+    /* Space above the image */
 }
 
 .vixen-bonus {
-    margin-top: 5px; /* Space below the image */
+    margin-top: 5px;
+    /* Space below the image */
 }
 
 .vixen-item img {
     margin-top: 0px;
-    width: 70%; /* Makes image fill its container */
-    height: auto; /* Maintains aspect ratio */
-    object-fit: cover; /* Ensures image covers the area */
+    width: 70%;
+    /* Makes image fill its container */
+    height: auto;
+    /* Maintains aspect ratio */
+    object-fit: cover;
+    /* Ensures image covers the area */
 }
 
 @media (max-width: 768px) {
     .vixen-item {
-        max-height: 150px; /* Adjust for smaller screens */
+        max-height: 150px;
+        /* Adjust for smaller screens */
     }
 }
 
 @media (max-width: 480px) {
     .vixen-item {
-        max-height: 100px; /* Further adjust for very small screens */
+        max-height: 100px;
+        /* Further adjust for very small screens */
     }
 }
 
 .vixen-name {
-    width: 100%; /* Ensure it spans the full width of its container */
-    padding: 5px 0; /* Add some padding */
-    box-sizing: border-box; /* Include padding in width calculation */
-    display: block; /* Ensure it's a block-level element */
-    overflow: hidden; /* Prevent overflow */
-    white-space: nowrap; /* Keep it on one line */
-    text-overflow: ellipsis; /* Add ellipsis for overflow text */
+    width: 100%;
+    /* Ensure it spans the full width of its container */
+    padding: 5px 0;
+    /* Add some padding */
+    box-sizing: border-box;
+    /* Include padding in width calculation */
+    display: block;
+    /* Ensure it's a block-level element */
+    overflow: hidden;
+    /* Prevent overflow */
+    white-space: nowrap;
+    /* Keep it on one line */
+    text-overflow: ellipsis;
+    /* Add ellipsis for overflow text */
 }
 
 .vixens-wrapper {
-    align-self: flex-start; /* Aligns this wrapper (and thus .vixens-grid) to the top */
-    width: 100%; /* Take full width to maintain layout consistency */
-    display:none;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-.third-panel > div.stat-panel > div.box.boxStat {
+.third-panel>div.stat-panel>div.box.boxStat {
     border: none;
 }
 
@@ -395,8 +516,7 @@ main {
 }
 
 .logBox p {
-    margin: 0.3rem 0;
-    padding: 0.3rem;
+    padding: 0.1rem;
 }
 
 #dungeonLog {
@@ -408,29 +528,35 @@ main {
     text-align: center;
 }
 
-#playerInventory, #playerTavern {
+#playerInventory,
+#playerTavern {
     height: 100%;
 }
 
-#playerEquipment, #playerVixen {
+#playerEquipment,
+#playerVixen {
     display: flex;
     gap: 0.5rem;
     flex-flow: row wrap;
     margin-left: 0.5rem;
 }
 
-#playerEquipment i, #playerVixen i {
+#playerEquipment i,
+#playerVixen i {
     margin: 0 0.4rem;
 }
 
-.inventorySlots, .tavernSlots {
+.inventorySlots,
+.tavernSlots {
     display: flex;
     flex-direction: column;
     overflow: auto;
 }
 
 .inventorySlots p,
-#playerEquipment p, .tavernSlots p, #tavernVixen p{
+#playerEquipment p,
+.tavernSlots p,
+#tavernVixen p {
     transition: .2s;
     -webkit-transition: .2s;
     -moz-transition: .2s;
@@ -439,7 +565,9 @@ main {
 }
 
 .inventorySlots p:hover,
-#playerEquipment p:hover, .tavernSlots p:hover, #tavernVixen p:hover {
+#playerEquipment p:hover,
+.tavernSlots p:hover,
+#tavernVixen p:hover {
     background-color: grey;
     color: white;
     cursor: pointer;
@@ -450,7 +578,6 @@ main {
 }
 
 #menu-btn {
-    width: 15rem;
     max-width: calc(100% - 1rem);
     margin: 0.5rem;
 }
@@ -475,11 +602,15 @@ main {
     width: 100%;
 }
 
-[class^="ra-"]:before, [class*=" ra-"]:before {
-margin-right: 5px;
-font-size: 14px;
+[class^="ra-"]:before,
+[class*=" ra-"]:before {
+    margin-right: 5px;
+    font-size: 16px;
 }
-  
+
+.poe-item-link {
+    font-size: 18px;
+}
 
 
 /* Buttons */
@@ -503,6 +634,9 @@ button {
     -ms-transition: .2s;
     -o-transition: .2s;
     -webkit-tap-highlight-color: transparent;
+}
+
+.dungeon-panel button {
     margin-bottom: 5px;
 }
 
@@ -517,7 +651,8 @@ button:focus {
 }
 
 /* Rarity Colors */
-.Common, .normal {
+.Common,
+.normal {
     color: rgb(200, 200, 200);
 }
 
@@ -526,7 +661,7 @@ button:focus {
 }
 
 .Rare {
-    color: #ff7;
+    color: #0080ff;
 }
 
 .Epic {
@@ -546,36 +681,69 @@ button:focus {
 }
 
 /* HP - Red for health */
-.stat-panel .fas.fa-heart { color: #FF6347; }
+.stat-panel .fas.fa-heart {
+    color: #FF6347;
+}
+
+.ra.ra-coin {
+    color: gold;
+}
 
 /* ATK - Orange for attack power */
-.ra.ra-sword { color: #FFA500; }
+.ra.ra-sword {
+    color: #FFA500;
+}
 
 /* DEF - Blue for defense */
-.ra.ra-round-shield { color: #1E90FF; }
+.ra.ra-round-shield {
+    color: #1E90FF;
+}
 
 /* ATK.SPD - Light green for attack speed */
-.ra.ra-plain-dagger { color: #32CD32; }
+.ra.ra-plain-dagger {
+    color: #32CD32;
+}
 
 /* VAMP - Dark red for vampirism */
-.ra.ra-dripping-blade { color: #8B0000; }
+.ra.ra-dripping-blade {
+    color: #8B0000;
+}
 
 /* C.RATE - Yellow for critical rate */
-.ra.ra-lightning-bolt { color: #FFD700; }
+.ra.ra-lightning-bolt {
+    color: #FFD700;
+    margin-right: -5px;
+}
 
 /* C.DMG - Purple for critical damage */
-.ra.ra-focused-lightning { color: #800080; }
+.ra.ra-focused-lightning {
+    color: #800080;
+}
 
 /* STR - Strength - Dark orange */
-.ra.ra-muscle-up { color: #FF8C00; }
+.ra.ra-muscle-up {
+    color: #FF8C00;
+}
 
 /* ENG - Energy - Light blue */
-.ra.ra-lightning-bolt:nth-of-type(2) { color: #00BFFF; /* Targeting second instance */ }
+.ra.ra-lightning-bolt:nth-of-type(2) {
+    color: #00BFFF;
+    /* Targeting second instance */
+}
 
 /* Luck - Green for luck */
-.ra.ra-clover { color: #008000; }
+.ra.ra-clover {
+    color: #008000;
+    margin-right: -5px;
+}
 
-.ra-knife {  color: teal }
+.ra-knife {
+    color: teal
+}
+
+.ra-hearts {
+    color: #ff0000;
+}
 
 
 /* Game */
@@ -604,26 +772,26 @@ button:focus {
     justify-content: center;
     position: fixed;
     z-index: 1;
-    width: 100vw;
-    height: 100vh;
+    width: 80vw;
+    border-radius: 1em;
 }
 
 .modal-container .content {
     background: -webkit-linear-gradient(360deg, #030303 10%, #1f1f1f 360%);
     background: linear-gradient(360deg, #030303 10%, #1f1f1f 360%);
     color: #fff;
-    border-radius: 0.3rem;
     border: solid 1px;
-    max-width: 25rem;
+    border-radius: 1em;
     padding: 0.5em;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 0.5em;
     margin: 0.5rem;
     -webkit-border-radius: 0.3rem;
     -moz-border-radius: 0.3rem;
     -ms-border-radius: 0.3rem;
     -o-border-radius: 0.3rem;
+    border-radius: 0.3rem;
 }
 
 .modal-container .content .button-container {
@@ -633,28 +801,33 @@ button:focus {
 }
 
 /* Equipment Info */
-#equipmentInfo .content ul, #vixenInfo .content ul{
+#equipmentInfo .content ul,
+#vixenInfo .content ul {
     margin-left: 1rem;
 }
+
 /* Equipment Info */
-#tavernInfo .content ul, #vixenInfo .content ul{
+#tavernInfo .content ul,
+#vixenInfo .content ul {
     margin-left: 1rem;
 }
 
 
 /* Inventory */
-#inventory, #tavern {
+#inventory,
+#tavern {
     flex-direction: column;
 }
 
-#inventory .content, #tavern .content {
+#inventory .content,
+#tavern .content {
     padding: 0;
     gap: 0;
     height: 35rem;
-    width: 16rem;
 }
 
-#inventory .content .inventorySlots, #tavern .content .tavernSlots {
+#inventory .content .inventorySlots,
+#tavern .content .tavernSlots {
     padding: 0 0.7em 0.4em;
 }
 
@@ -695,6 +868,7 @@ button:focus {
     width: 100%;
     max-height: 40rem;
     padding: 0.5em;
+    justify-content: center;
 }
 
 .battle-info-panel {
@@ -709,12 +883,15 @@ button:focus {
     align-items: center;
 }
 
-#lvlupPanel .content {
+#lvlupPanel .content,
+#vixenPanel .content {
     width: 100%;
     max-width: 24em;
+    flex-direction: column;
 }
 
-#lvlupPanel h1 {
+#lvlupPanel h1,
+#vixenPanel h1 {
     text-align: center;
 }
 
@@ -767,31 +944,6 @@ button:focus {
     transition-timing-function: cubic-bezier(1, 0.1, 0.1, 0.1);
 }
 
-/* Title Screen */
-#title-screen {
-    display: none;
-    justify-content: space-around;
-    align-items: center;
-    text-align: center;
-    flex-direction: column;
-    cursor: pointer;
-}
-
-#title-screen h1 {
-    font-family: 'Rubik Vinyl';
-    font-size: 2.5rem;
-    font-weight: 400;
-    margin: 0 1rem;
-}
-
-#title-screen i {
-    margin: 0 0 1rem;
-}
-
-#title-screen p {
-    animation: blinker 1s linear infinite;
-    -webkit-animation: blinker 1s linear infinite;
-}
 
 @keyframes blinker {
     50% {
@@ -846,8 +998,16 @@ header button i {
 
 /* Dungeon */
 #dungeon-main {
-    display: none;
+    /* display: none; */
     flex-direction: column;
+}
+
+.vixen-item {
+    display: none;
+}
+
+#main-vixen {
+    display: block !important;
 }
 
 #dungeon-main h1 {
@@ -857,7 +1017,7 @@ header button i {
 }
 
 .dungeon-head {
-    font-size: 12px;
+    font-size: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -877,7 +1037,7 @@ header button i {
 
 .stat-panel .box {
     white-space: nowrap;
-    /* border: solid 1px; */
+    border: solid 1px;
     border-radius: 0.3rem;
     -webkit-border-radius: 0.3rem;
     -moz-border-radius: 0.3rem;
@@ -913,7 +1073,7 @@ header button i {
 
 .dungeon-panel .box {
     white-space: nowrap;
-    border: solid 1px;
+    /* border: solid 1px; */
     border-radius: 0.3rem;
     -webkit-border-radius: 0.3rem;
     -moz-border-radius: 0.3rem;
@@ -1122,7 +1282,7 @@ header button i {
     animation: dmg-numbers 0.7s;
     -webkit-animation: dmg-numbers 0.7s;
     position: absolute;
-    z-index: 1;
+    z-index: 11;
 }
 
 @keyframes dmg-numbers {
@@ -1155,19 +1315,25 @@ header button i {
 
 
 
-.stat-panel .boxStat{
+.stat-panel .boxStat {
     display: flex;
     flex-direction: column;
 }
 
 .stat-panel .boxStat p {
     display: flex;
-    align-items: center; /* Vertically aligns the icon and text */
-    gap: 5px; /* Adjusts space between the icon and text */
+    align-items: center;
+    /* Vertically aligns the icon and text */
+    gap: 5px;
+    /* Adjusts space between the icon and text */
 }
-@media (max-width: 600px) { /* Adjust breakpoint as needed */
+
+@media (max-width: 600px) {
+
+    /* Adjust breakpoint as needed */
     .stat-panel .boxStat {
-        grid-template-columns: 1fr; /* Switches to a single column */
+        grid-template-columns: 1fr;
+        /* Switches to a single column */
     }
 }
 
@@ -1175,8 +1341,10 @@ header button i {
 
 .clickable-material {
     display: flex;
-    align-items: center; /* Aligns the icon and text vertically */
-    gap: 10px; /* Optional: adds some space between the icon and text */
+    align-items: center;
+    /* Aligns the icon and text vertically */
+    gap: 10px;
+    /* Optional: adds some space between the icon and text */
 }
 
 
@@ -1188,5 +1356,478 @@ header button i {
 
 .fade-out {
     opacity: 0;
-    transition: opacity 2s ease-out; /* Adjust the timing and easing to suit your needs */
+    transition: opacity 2s ease-out;
+    /* Adjust the timing and easing to suit your needs */
+}
+
+i {
+    margin-right: -0.1rem;
+    vertical-align: middle;
+}
+
+.vixen-bonus-container {
+    display: inline-flex;
+}
+
+.vixen-bonus-container>div:nth-child(1)>span>i {
+    margin-left: 0px;
+}
+
+span {
+    display: inline-flex;
+}
+
+span p {
+    margin-top: -3px;
+}
+
+.spinner-rest {
+    background-image: linear-gradient(rgb(30, 98, 3) 35%, rgb(3, 201, 3));
+    width: 20px;
+    height: 20px;
+    animation: spinning82341 1.7s linear infinite;
+    text-align: center;
+    border-radius: 10px;
+    filter: blur(1px);
+    box-shadow: 0px -5px 20px 0px rgb(30, 98, 3), 0px 5px 20px 0px rgb(3, 201, 3);
+}
+
+.spinner-explore {
+    background-image: linear-gradient(rgb(84, 0, 0) 35%, rgb(215, 0, 0));
+    width: 20px;
+    height: 20px;
+    animation: spinning82341 1.7s linear infinite;
+    text-align: center;
+    border-radius: 10px;
+    filter: blur(1px);
+    box-shadow: 0px -5px 20px 0px rgb(84, 0, 0), 0px 5px 20px 0px rgb(215, 0, 0);
+}
+
+.spinner1 {
+    background-color: rgb(36, 36, 36);
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    filter: blur(10px);
+}
+
+@keyframes spinning82341 {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+#checkbox {
+    display: none;
+}
+
+.switch {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    background-color: rgb(99, 99, 99);
+    border-radius: 50%;
+    z-index: 11;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 0.9em;
+    font-weight: 700;
+    color: rgb(37, 37, 37);
+    border: 2px solid rgb(126, 126, 126);
+    box-shadow: 0px 0px 3px rgb(2, 2, 2) inset;
+}
+
+#checkbox:checked+.switch .svg {
+    filter: drop-shadow(0px 0px 3px rgb(222, 151, 255));
+}
+
+#checkbox:checked+.switch .svg path {
+    fill: rgb(255, 255, 255);
+}
+
+#checkbox:checked+.switch {
+    box-shadow: 0px 0px 1px rgb(153, 0, 0) inset,
+        0px 0px 2px rgb(153, 0, 0) inset,
+        0px 0px 10px rgb(153, 0, 0) inset,
+        0px 0px 40px rgb(153, 0, 0),
+        0px 0px 100px rgb(153, 0, 0),
+        0px 0px 5px rgb(153, 0, 0);
+    background-color: rgb(139, 0, 0);
+
+
+
+    border: 2px solid rgb(255, 255, 255);
+    color: rgb(255, 255, 255);
+}
+
+#dungeonActivity>i {
+    margin-left: 5px;
+}
+
+
+
+/* Styles for enemy HP bars */
+#combatPanel #enemy-hp-dmg,
+#combatPanel #enemy-hp-battle {
+    width: 0%;
+}
+
+/* Specific style for the enemy HP text */
+#combatPanel #enemyHpText {
+    position: absolute;
+}
+
+/* Style for the enemy sprite image */
+/* #combatPanel #enemy-sprite,
+#combatPanel #player-sprite {
+    width: 24vw;
+} */
+
+/* Styles for the player panel */
+#combatPanel #playerPanel {
+    background-color: black;
+}
+
+/* Styles for player HP bars */
+#combatPanel #player-hp-dmg,
+#player-hp-battle {
+    width: 100%;
+}
+
+/* Style for the player HP text */
+#combatPanel #playerHpText {
+    position: absolute;
+}
+
+/* Style for the player experience bar */
+#combatPanel #player-exp-bar {
+    width: 64.75%;
+}
+
+/* Styles for the log box */
+#combatPanel .logBox {
+    max-width: 300px;
+    max-height: 500px;
+    background-color: black;
+}
+
+/* Target all <p> elements within #combatLogBox to have grey text */
+#combatLogBox p {
+    color: grey;
+    /* Or any shade of grey you prefer */
+}
+
+/* Then, target the last <p> element to have white text */
+#combatLogBox p:last-of-type {
+    color: white;
+}
+
+
+#playerPanel,
+#enemyPanel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+
+
+#enemyPanel img,
+#playerPanel img {
+    max-width: 100%;
+    /* Ensure image is not wider than its container */
+    height: auto;
+    /* Maintain aspect ratio */
+    max-height: 60vh;
+}
+
+#playerPanel {
+    /* min-width:30vw; */
+    border-radius: 0.3rem;
+    border: none;
+    width: auto;
+}
+
+#combatPanel .logBox.primary-panel {
+    border: none;
+}
+
+#inventory .content,
+#tavern .content {
+    display: flex;
+    flex-direction: column;
+}
+
+.vixen-item img {
+    width: 95%;
+    height: auto;
+    object-fit: cover;
+    z-index: 10;
+    position: relative;
+    border-radius: 1em;
+    margin-top: 4px;
+}
+
+.card {
+    position: relative;
+    color: #fff;
+    transition: 0.5s;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 1em;
+}
+
+.card:hover {
+    transform: translateY(-20px);
+}
+
+.card::before {
+    content: '';
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: var(--common);
+    border-radius: 1.2em;
+    filter: blur(10px);
+}
+
+.cardUncommon::before {
+    background: var(--uncommon);
+}
+
+.cardRare::before {
+    background: var(--rare);
+}
+
+.cardEpic::before {
+    background: var(--epic);
+}
+
+.cardLegendary::before {
+    background: var(--legendary);
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--common);
+    filter: blur(5px);
+}
+
+.cardUncommon::after {
+    background: var(--uncommon);
+    filter: blur(5px);
+}
+
+.cardRare::after {
+    background: var(--rare);
+    filter: blur(10px);
+}
+
+.cardEpic::after {
+    background: var(--epic);
+    filter: blur(15px);
+}
+
+.cardLegendary::after {
+    background: var(--legendary);
+    filter: blur(20px);
+}
+
+.card span {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 12;
+    border-radius: 1em;
+}
+
+.card span::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.card .content {
+    position: relative;
+    padding: 10px;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.5em;
+}
+
+.card::before {
+    animation: rotBGimg 12s ease-in-out infinite;
+}
+
+@keyframes rotBGimg {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.vixen-item img {
+    width: 95%;
+    z-index: 10;
+    position: relative;
+    border-radius: 1em;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0, 0, 0);
+    background-color: rgba(0, 0, 0, 0.92);
+}
+
+.modal-content {
+    background-color: rgba(0, 0, 0, 0.92);
+    border: 1px solid #888;
+    width: 80%;
+    border-radius: 1em;
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    height: 100vh;
+}
+
+.modal-content .vixen-item {
+    vertical-align: top;
+    text-align: center;
+    border-radius: 1em;
+}
+
+#choiceSelect {
+    margin: auto;
+    text-align: center;
+}
+
+#choiceSelect button {
+    margin-right: 10px;
+}
+
+#playerTavern {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.grey {
+    color: grey;
+}
+
+#materialsPanel {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.material-name {
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.clickable-material {
+    margin-left: -30px !important;
+}
+
+.clickable-material img {
+    margin-top: 0px;;
+}
+
+
+#devGuiPanel {
+    position: fixed;
+    /* Stay in place */
+    z-index: 1;
+    /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* Full width */
+    height: 100%;
+    /* Full height */
+    overflow: auto;
+    /* Enable scroll if needed */
+    background-color: rgb(0, 0, 0);
+    /* Fallback color */
+    background-color: rgba(0, 0, 0, 0.4);
+    /* Black w/ opacity */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#devGuiPanel>div {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+#materialModal {
+    width: 100vw;
+    height: 100vh;
+}
+
+#materialModal > div {
+    display: flex;
+    flex-direction: column;
+    height: 25%;
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#materialModal > div > div.content-head > p {
+    margin-top: -50px;
+    position: absolute;
+    margin-left: 136px;
+}
+
+#modalMaterialName {
+    position: absolute;
+    margin-left: -65px;
 }

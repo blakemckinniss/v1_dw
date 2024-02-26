@@ -1,3 +1,264 @@
+document.addEventListener('DOMContentLoaded', function() {
+    const vixensContainer = document.getElementById('vixensContainer');
+
+    vixensContainer.addEventListener('click', function(e) {
+        let target = e.target.closest('[class*="vixen-"]');
+        if (target) {
+            let vixenNumber = target.className.match(/vixen-(\d+)/)[1];
+            if (vixenNumber) {
+                console.log(player.vixens[vixenNumber - 1]);
+            }
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    document.querySelectorAll('.vixen-item').forEach(item => {
+        item.addEventListener('click', function() {
+            var clone = this.cloneNode(true); // Clone the .vixen-item
+            modalContent.innerHTML = ''; // Clear previous content
+            modalContent.appendChild(clone); // Insert cloned content into modal
+            modal.style.display = 'block'; // Show the modal
+        });
+    });
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+});
+
+function vixenByUUID(uuid) {
+    modalContent.innerHTML = ''; // Clear previous content
+    clonedMainVixen = mainVixen.cloneNode(true); // Clone the .vixen-item
+    modalContent.appendChild(clonedMainVixen); // Insert cloned content into modal
+    modal.style.display = 'block'; // Show the modal
+}
+
+function updateVixenModal(vixenData) {
+    const { name, category, rarity, cardRarity, lvl, tier, avatar, stats, uuid } = vixenData;
+
+    const vixenItem = document.querySelector(`#vixenModal .vixen-item`);
+    const vixenNameTop = vixenItem.querySelector('.vixen-name-top');
+    const card = vixenItem.querySelector(`.card`);
+    const vixenBonusContainer = vixenItem.querySelector('.vixen-bonus-container');
+
+    vixenItem.setAttribute('data-uuid', uuid);
+    vixenItem.setAttribute('data-category', category);
+    vixenItem.setAttribute('data-tier', tier);
+
+    vixenNameTop.innerHTML = `<span class="vixen-name ${rarity}">${name}</span><span class="vixen-lvl grey">Lv. ${lvl})</span>`;
+    vixenNameTop.className = `vixen-name-top ${rarity}`; // Update the class to reflect the new rarity
+
+    card.className = `card card${rarity}`;
+    card.querySelector('img').src = avatar;
+    card.querySelector('img').alt = `${name} Avatar`;
+
+    vixenBonusContainer.innerHTML = ''; // Clear existing bonuses
+    stats.forEach(stat => {
+        const statKey = Object.keys(stat)[0];
+        const statValue = stat[statKey];
+        const iconClass = iconMap[statKey] || "ra ra-help"; // Fallback icon if key not found
+        const bonusHTML = `<div class="vixen-bonus"><span><i class="${iconClass}"></i><p>${parseInt(statValue)}</p></span></div>`;
+        vixenBonusContainer.innerHTML += bonusHTML;
+    });
+}
+
+
+function tallyVixenStats() {
+    const statNameMap = {
+        "atk": "atk",
+        "hp": "hp",
+        "def": "def",
+        "atkspd": "atkSpd",
+        "vamp": "vamp",
+        "cdmg": "critDmg",
+        "crate": "critRate",
+    };
+
+    vixenObject.forEach(tavernVixen => {
+        tavernVixen.stats.forEach(stat => {
+            const [statName, valueStr] = Object.entries(stat)[0];
+            // Ensure value is treated as a float for percentage stats or an integer for others
+            const value = statName.endsWith('%') || statName === 'vamp' || statName === 'crate' || statName === 'cdmg' ? parseFloat(valueStr) : parseInt(valueStr, 10);
+
+            const normalizedStatName = statNameMap[statName.toLowerCase().replace(' %', '')];
+
+            if (normalizedStatName && vixenObjectStats.hasOwnProperty(normalizedStatName)) {
+                vixenObjectStats[normalizedStatName] += value;
+            } else {
+                console.warn(`Stat name ${statName} not recognized.`);
+            }
+        });
+    });
+
+    console.log(vixenObjectStats);
+}
+
+function showVixens() {
+    if (!player || !player.vixens) {
+        console.error('Player or player.vixens is undefined');
+        return;
+    } 
+    if (player.vixens.length > 0) {
+        console.log('Vixens:', player.vixens);
+        tallyVixenStats();
+        populateAllVixens();
+    }
+}
+
+
+function addVixenStatsToPlayer() {
+    if (!player || !player.bonusStats) {
+        console.error('Player or player.bonusStats is undefined');
+        return;
+    }
+
+    Object.keys(vixenObjectStats).forEach(statName => {
+        if (player.bonusStats.hasOwnProperty(statName)) {
+            player.bonusStats[statName] += vixenObjectStats[statName];
+        } else {
+            console.warn(`Stat ${statName} not found in player.bonusStats`);
+        }
+    });
+
+    return player;
+}
+
+function generateVixenRarity() {
+    const rand = Math.random();
+    let sum = 0;
+    for (const rarity in rarityChances) {
+        sum += rarityChances[rarity];
+        if (rand <= sum) return rarity;
+    }
+    return "Common";
+}
+
+function generateVixenStats(rarity) {
+    const statsMap = {};
+    const possibleStats = ["atk", "hp", "def", "crate %", "cdmg %", "vamp %", "atkspd %"];
+    const statsCount = Math.min(Object.keys(rarityChances).indexOf(rarity) + 1, 4);
+
+    while (Object.keys(statsMap).length < statsCount) {
+        const statName = possibleStats[Math.floor(Math.random() * possibleStats.length)];
+        const value = statName.endsWith('%') ? parseFloat((Math.random() * 10).toFixed(2)) : Math.floor(Math.random() * 50) + 1;
+
+        if (statsMap.hasOwnProperty(statName)) {
+            statsMap[statName] += value;
+        } else {
+            statsMap[statName] = value;
+        }
+    }
+
+    const stats = Object.keys(statsMap).map(statName => ({
+        name: statName,
+        value: statName.endsWith('%') ? statsMap[statName].toFixed(2) : Math.round(statsMap[statName])
+    }));
+
+    return stats;
+}
+
+
+function addVixen(name, category, level, tier, avatar) {
+    const rarity = generateVixenRarity();
+    const stats = generateVixenStats(rarity);
+
+    const newVixen = {
+        name,
+        category,
+        rarity,
+        lvl: level,
+        tier,
+        uuid: generateUniqueRandomString(10),
+        avatar,
+        stats: stats.map(stat => ({ [stat.name]: stat.value }))
+    };
+
+    vixenObject.push(newVixen);
+    player.vixens = vixenObject;
+    populateAllVixens();
+}
+
+function populateAllVixens() {
+    if (!Array.isArray(player.vixens)) {
+      console.error('vixenObject is not defined or not an array.');
+      return;
+    }
+  
+    player.vixens.forEach((_, index) => {
+      populateVixenTemplate(index);
+    });
+  }
+
+function populateVixenTemplate(index) {
+    const vixen = vixenObject[index];
+    index++;
+
+    if (!vixen) {
+        console.error('Vixen not found at the given index');
+        return;
+    }
+
+    let vixenItem = document.querySelector(".vixen-item.vixen-" + index);
+    vixenItem.querySelector('.vixen-name-top').innerHTML = `<span class="vixen-name ${vixen.rarity}">${vixen.name}</span><span class="vixen-lvl grey">Lv. ${vixen.lvl} <sup>${vixen.tier}</sup></span>`;;
+    vixenItem.querySelector('.vixen-name-top').classList.add(vixen.rarity);
+    vixenItem.querySelector('img').src = vixen.avatar;
+    vixenItem.querySelector('img').alt = `${vixen.name} Avatar`;
+
+    vixenItem.querySelector(".card").classList.add(`card${vixen.rarity}`);
+
+    let bonusContainer = vixenItem.querySelector('.vixen-bonus-container');
+    if (bonusContainer) {
+        bonusContainer.innerHTML = '';
+    } else {
+        bonusContainer = document.createElement('div');
+        bonusContainer.className = 'vixen-bonus-container';
+        vixenItem.appendChild(bonusContainer);
+    }
+
+
+    vixen.stats.forEach(stat => {
+        const statEntry = Object.entries(stat)[0];
+        if (!statEntry) return;
+        const [name, value] = statEntry;
+        const statDiv = document.createElement('div');
+        statDiv.className = 'vixen-bonus';
+        let iconClass = '';
+        switch (name) {
+            case 'hp':
+                iconClass = 'ra ra-hearts';
+                break;
+            case 'atk':
+                iconClass = 'ra ra-sword';
+                break;
+            case 'def':
+                iconClass = 'ra ra-round-shield';
+                break;
+            case 'crate %':
+                iconClass = 'ra ra-knife';
+                break;
+            case 'cdmg %':
+                iconClass = 'ra ra-focused-lightning';
+                break;
+            case 'vamp %':
+                iconClass = 'ra ra-dripping-blade';
+                break;
+            case 'atkspd %':
+                iconClass = 'ra ra-player-dodge';
+                break;
+            default:
+                iconClass = '';
+        }
+        statDiv.innerHTML = `<span><i class="${iconClass}"></i><p>${parseFloat(value).toFixed(1)}${name.endsWith('%') ? '%' : ''}</p></span>`;
+        bonusContainer.appendChild(statDiv);
+    });
+
+    vixenItem.style.display = 'block';
+}
+
+
 const createVixen = () => {
     const vixen = NULL_EQUIPMENT;
     const selectRandom = (array) => array[Math.floor(Math.random() * array.length)];
@@ -21,7 +282,7 @@ const createVixen = () => {
             break;
         }
     }
-    
+
     let loopCount = rarityLoopCounts[vixen.rarity] || 0;
     let statTypesKey = statsMapping[vixen.attribute]?.[vixen.category] || statsMapping[vixen.attribute]?.["default"];
     let statTypes = statTypesKey ? statsTypes[statTypesKey] : [];
@@ -80,7 +341,7 @@ const createVixen = () => {
             vixenValue += statValue * 8.33;
         }
 
-        // Decrement loopCount if it exceeds the threshold for the given rarity
+
         if (loopCount > rarityThresholds[vixen.rarity]) {
             loopCount--;
         }
@@ -126,11 +387,8 @@ const vixenIcon = (vixen) => {
 };
 
 const showGirlInfo = (girl, icon, type, i) => {
-    sfxOpen.play();
-
-    dungeon.status.exploring = false;
+    pauseSwitch();
     let girlInfo = document.querySelector("#vixenInfo");
-    let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     let dimContainer = document.querySelector(`#tavern`);
     if (girl.tier == undefined) {
         girl.tier = 1;
@@ -153,7 +411,7 @@ const showGirlInfo = (girl, icon, type, i) => {
                 </ul>
                 <div class="button-container">
                     <button id="un-enlist">${type}</button>
-                    <button id="sell-enlist"><i class="fas fa-coins" style="color: #FFD700;"></i>${nFormatter(girl.value)}</button>
+                    <button id="sell-enlist"><i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(girl.value)}</button>
                     <button id="close-girl-info">Close</button>
                 </div>
             </div>`;
@@ -164,11 +422,6 @@ const showGirlInfo = (girl, icon, type, i) => {
         if (type == "Enlist") {
 
             if (player.enlisted.length >= 6) {
-                sfxDeny.play();
-            } else {
-                sfxEquip.play();
-
-
                 player.tavern.vixen.splice(i, 1);
                 player.enlisted.push(girl);
 
@@ -179,9 +432,6 @@ const showGirlInfo = (girl, icon, type, i) => {
                 continueExploring();
             }
         } else if (type == "Unenlist") {
-            sfxUnequip.play();
-
-
             player.enlisted.splice(i, 1);
             player.tavern.vixen.push(JSON.stringify(girl));
 
@@ -196,7 +446,6 @@ const showGirlInfo = (girl, icon, type, i) => {
 
     let sell = document.querySelector("#sell-enlist");
     sell.onclick = function () {
-        sfxOpen.play();
         girlInfo.style.display = "none";
         defaultModalElement.style.display = "flex";
         defaultModalElement.innerHTML = `
@@ -211,9 +460,6 @@ const showGirlInfo = (girl, icon, type, i) => {
         let confirm = document.querySelector("#sell-enlist-confirm");
         let cancel = document.querySelector("#sell-enlist-cancel");
         confirm.onclick = function () {
-            sfxSell.play();
-
-
             if (type == "Enlist") {
                 player.gold += girl.value;
                 player.tavern.vixen.splice(i, 1);
@@ -230,7 +476,6 @@ const showGirlInfo = (girl, icon, type, i) => {
             continueExploring();
         }
         cancel.onclick = function () {
-            sfxDecline.play();
             defaultModalElement.style.display = "none";
             defaultModalElement.innerHTML = "";
             girlInfo.style.display = "flex";
@@ -240,8 +485,6 @@ const showGirlInfo = (girl, icon, type, i) => {
 
     let close = document.querySelector("#close-girl-info");
     close.onclick = function () {
-        sfxDecline.play();
-
         girlInfo.style.display = "none";
         dimContainer.style.filter = "brightness(100%)";
         continueExploring();
@@ -251,20 +494,26 @@ const showGirlInfo = (girl, icon, type, i) => {
 const showTavern = () => {
     let playerTavernList = document.getElementById("playerTavern");
     playerTavernList.innerHTML = "";
-    if (player.tavern.vixen.length == 0) {
-        playerTavernList.innerHTML = "There are no girls available.";
+    if (vixenObject.length == 0) {
+        playerTavernList.innerHTML = "There are no vixens available.";
     }
-    for (let i = 0; i < player.tavern.vixen.length; i++) {
-        const girl = JSON.parse(player.tavern.vixen[i]);
-        let girlDiv = document.createElement('div');
-        let icon = vixenIcon(girl.category);
-        girlDiv.className = "girls";
-        girlDiv.innerHTML = `<p class="${girl.rarity}">${icon}${girl.rarity} ${girl.category}</p>`;
-        girlDiv.addEventListener('click', function () {
-            let type = "Enlist";
-            showGirlInfo(girl, icon, type, i);
+    for (let i = 0; i < vixenObject.length; i++) {
+        const tavernVixen = vixenObject[i];
+        console.log("Tavern Vixen: ", tavernVixen);
+        let tavernVixenDiv = document.createElement('div');
+        let icon = `<i class="ra ra-player ${tavernVixen.rarity}"></i>`;
+        tavernVixenDiv.className = "tavernVixen";
+        tavernVixenDiv.innerHTML = `<p class="${tavernVixen.rarity}">${icon}${tavernVixen.name}</p>`;
+        tavernVixenDiv.setAttribute("data-tavernVixen", tavernVixen.uuid);
+        tavernVixenDiv.addEventListener('click', function () {
+            vixenObject.forEach(obj => {
+                if (obj.uuid ==  this.getAttribute("data-tavernVixen")) {
+                    vixenByUUID();
+                    updateVixenModal(obj);
+                }
+            });
         });
-        playerTavernList.appendChild(girlDiv);
+        playerTavernList.appendChild(tavernVixenDiv);
     }
 }
 
@@ -323,7 +572,6 @@ const unenlistAll = () => {
 const sellAllVixen = (rarity) => {
     if (rarity == "All") {
         if (player.tavern.vixen.length !== 0) {
-            sfxSell.play();
             for (let i = 0; i < player.tavern.vixen.length; i++) {
                 const vixen = JSON.parse(player.tavern.vixen[i]);
                 player.gold += vixen.value;
@@ -332,8 +580,6 @@ const sellAllVixen = (rarity) => {
             }
             playerLoadStats();
             saveData();
-        } else {
-            sfxDeny.play();
         }
     } else {
         let rarityCheck = false;
@@ -345,7 +591,6 @@ const sellAllVixen = (rarity) => {
             }
         }
         if (rarityCheck) {
-            sfxSell.play();
             for (let i = 0; i < player.tavern.vixen.length; i++) {
                 const vixen = JSON.parse(player.tavern.vixen[i]);
                 if (vixen.rarity === rarity) {
@@ -356,14 +601,11 @@ const sellAllVixen = (rarity) => {
             }
             playerLoadStats();
             saveData();
-        } else {
-            sfxDeny.play();
         }
     }
 }
 
 const createVixenPrint = (condition) => {
-    let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     let girl = createVixen();
     let panel = `
         <div class="primary-panel" style="padding: 0.5rem; margin-top: 0.5rem;">

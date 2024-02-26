@@ -21,7 +21,7 @@ const createEquipment = () => {
             break;
         }
     }
-    
+
     let loopCount = rarityLoopCounts[equipment.rarity] || 0;
     let statTypesKey = statsMapping[equipment.attribute]?.[equipment.category] || statsMapping[equipment.attribute]?.["default"];
     let statTypes = statTypesKey ? statsTypes[statTypesKey] : [];
@@ -126,11 +126,9 @@ const equipmentIcon = (equipment) => {
 };
 
 const showItemInfo = (item, icon, type, i) => {
-    sfxOpen.play();
 
-    dungeon.status.exploring = false;
+    pauseSwitch();
     let itemInfo = document.querySelector("#equipmentInfo");
-    let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     let dimContainer = document.querySelector(`#inventory`);
     if (item.tier == undefined) {
         item.tier = 1;
@@ -153,7 +151,7 @@ const showItemInfo = (item, icon, type, i) => {
                 </ul>
                 <div class="button-container">
                     <button id="un-equip">${type}</button>
-                    <button id="sell-equip"><i class="fas fa-coins" style="color: #FFD700;"></i>${nFormatter(item.value)}</button>
+                    <button id="sell-equip"><i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(item.value)}</button>
                     <button id="close-item-info">Close</button>
                 </div>
             </div>`;
@@ -162,13 +160,7 @@ const showItemInfo = (item, icon, type, i) => {
     let unEquip = document.querySelector("#un-equip");
     unEquip.onclick = function () {
         if (type == "Equip") {
-
-            if (player.equipped.length >= 6) {
-                sfxDeny.play();
-            } else {
-                sfxEquip.play();
-
-
+            if (player.equipped.length <= 6) {
                 player.inventory.equipment.splice(i, 1);
                 player.equipped.push(item);
 
@@ -179,8 +171,6 @@ const showItemInfo = (item, icon, type, i) => {
                 continueExploring();
             }
         } else if (type == "Unequip") {
-            sfxUnequip.play();
-
 
             player.equipped.splice(i, 1);
             player.inventory.equipment.push(JSON.stringify(item));
@@ -196,7 +186,6 @@ const showItemInfo = (item, icon, type, i) => {
 
     let sell = document.querySelector("#sell-equip");
     sell.onclick = function () {
-        sfxOpen.play();
         itemInfo.style.display = "none";
         defaultModalElement.style.display = "flex";
         defaultModalElement.innerHTML = `
@@ -211,8 +200,6 @@ const showItemInfo = (item, icon, type, i) => {
         let confirm = document.querySelector("#sell-confirm");
         let cancel = document.querySelector("#sell-cancel");
         confirm.onclick = function () {
-            sfxSell.play();
-
 
             if (type == "Equip") {
                 player.gold += item.value;
@@ -230,7 +217,6 @@ const showItemInfo = (item, icon, type, i) => {
             continueExploring();
         }
         cancel.onclick = function () {
-            sfxDecline.play();
             defaultModalElement.style.display = "none";
             defaultModalElement.innerHTML = "";
             itemInfo.style.display = "flex";
@@ -241,8 +227,6 @@ const showItemInfo = (item, icon, type, i) => {
 
     let close = document.querySelector("#close-item-info");
     close.onclick = function () {
-        sfxDecline.play();
-
         itemInfo.style.display = "none";
         dimContainer.style.filter = "brightness(100%)";
         continueExploring();
@@ -250,21 +234,16 @@ const showItemInfo = (item, icon, type, i) => {
 }
 
 function generateUniqueRandomString(length) {
-    // Create a random string of a given length
     let randomString = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     for (let i = 0; i < length; i++) {
         randomString += characters.charAt(Math.floor(Math.random() * characters.length));
     }
-
-    // Add a timestamp to the end of the random string
     const uniqueRandomString = randomString + Date.now().toString();
-
     return uniqueRandomString;
 }
 
 const showInventory = () => {
-
     let playerInventoryList = document.getElementById("playerInventory");
     playerInventoryList.innerHTML = "";
 
@@ -274,21 +253,17 @@ const showInventory = () => {
 
     for (let i = 0; i < player.inventory.equipment.length; i++) {
         const item = JSON.parse(player.inventory.equipment[i]);
-
         let equpIcon = equipmentIcons[item.category]
-
         let uniqueString = generateUniqueRandomString(10);
         let itemDiv = document.createElement('div');
         let icon = equipmentIcon(item.category);
         itemDiv.className = "items";
-        let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
         let formattedStats = item.stats.map(stat => {
             const statKey = Object.keys(stat)[0];
             const formattedKey = statKey
                 .replace(/([A-Z])/g, ".$1")
                 .replace(/crit/g, "c")
                 .toUpperCase();
-        
             if (["critRate", "critDmg", "atkSpd", "vamp"].includes(statKey)) {
                 const value = stat[statKey].toFixed(2).replace(rx, "$1");
                 return `${formattedKey} +${value}%`;
@@ -316,28 +291,26 @@ const showInventory = () => {
             reference: uniqueString,
             iconUrl: "https://web.poecdn.com/image/Art/2DItems/Armours/Helmets/HelmetDexUnique2.png",
             data: {
-            rarity: tempRarity,
-            type: "currency",
-            name: `${item.rarity} ${item.category}`,
-            influences: ["elder"]
-          ,
-            baseName: "Lapis Amulet",
-            sections: {
-                requirements: ["Level 5"],
-                implicits: ["+22 to Intelligence"],
-                modifiers: formattedStats,
-                flavourText: [
-                  "You are slow, foolish and ignorant.",
-                  "I am not."
-                ]
-              }
+                rarity: tempRarity,
+                type: "currency",
+                name: `${item.rarity} ${item.category}`,
+                influences: ["elder"]
+                ,
+                baseName: "Lapis Amulet",
+                sections: {
+                    requirements: ["Level 5"],
+                    implicits: ["+22 to Intelligence"],
+                    modifiers: formattedStats,
+                    flavourText: [
+                        "You are slow, foolish and ignorant.",
+                        "I am not."
+                    ]
+                }
             }
-          });
+        });
         playerInventoryList.appendChild(itemDiv);
-        console.log("Added item: ", item);
+        // console.log("Added item: ", item);
     }
-
-    
 }
 
 
@@ -395,7 +368,6 @@ const unequipAll = () => {
 const sellAll = (rarity) => {
     if (rarity == "All") {
         if (player.inventory.equipment.length !== 0) {
-            sfxSell.play();
             for (let i = 0; i < player.inventory.equipment.length; i++) {
                 const equipment = JSON.parse(player.inventory.equipment[i]);
                 player.gold += equipment.value;
@@ -404,9 +376,7 @@ const sellAll = (rarity) => {
             }
             playerLoadStats();
             saveData();
-        } else {
-            sfxDeny.play();
-        }
+        } 
     } else {
         let rarityCheck = false;
         for (let i = 0; i < player.inventory.equipment.length; i++) {
@@ -417,7 +387,6 @@ const sellAll = (rarity) => {
             }
         }
         if (rarityCheck) {
-            sfxSell.play();
             for (let i = 0; i < player.inventory.equipment.length; i++) {
                 const equipment = JSON.parse(player.inventory.equipment[i]);
                 if (equipment.rarity === rarity) {
@@ -428,14 +397,41 @@ const sellAll = (rarity) => {
             }
             playerLoadStats();
             saveData();
-        } else {
-            sfxDeny.play();
         }
     }
 }
 
+document.querySelector("#unequip-all").addEventListener("click", function () {
+    pauseSwitch(false, false, true);
+    let dimTarget = document.querySelector('#inventory');
+    dimTarget.style.filter = "brightness(50%)";
+    defaultModalElement.style.display = "flex";
+    defaultModalElement.innerHTML = `
+    <div class="content">
+        <p>Unequip all your items?</p>
+        <div class="button-container">
+            <button id="unequip-confirm">Unequip</button>
+            <button id="unequip-cancel">Cancel</button>
+        </div>
+    </div>`;
+    let confirm = document.querySelector('#unequip-confirm');
+    let cancel = document.querySelector('#unequip-cancel');
+    confirm.onclick = function () {
+        unequipAll();
+        continueExploring();
+        defaultModalElement.style.display = "none";
+        defaultModalElement.innerHTML = "";
+        dimTarget.style.filter = "brightness(100%)";
+    };
+    cancel.onclick = function () {
+        continueExploring();
+        defaultModalElement.style.display = "none";
+        defaultModalElement.innerHTML = "";
+        dimTarget.style.filter = "brightness(100%)";
+    };
+});
+
 const createEquipmentPrint = (condition) => {
-    let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     let item = createEquipment();
     let panel = `
         <div class="primary-panel" style="padding: 0.5rem; margin-top: 0.5rem;">

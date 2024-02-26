@@ -34,7 +34,6 @@ class ChoiceEvent extends DungeonEvent {
         this.choices.forEach((choice, index) => {
             const choiceId = `choice${index + 1}`;
             document.querySelector(`#${choiceId}`).onclick = () => choice.action();
-            dungeon.status.exploring = false;
         });
     }
 }
@@ -59,14 +58,12 @@ class NextRoomEvent extends DungeonEvent {
                 const chestMessage = `You moved to the next room and found a treasure chamber. There is a <i class="fa fa-toolbox"></i>Chest inside.`;
                 new ChoiceEvent(this.player, this.dungeon, chestMessage, chestChoices).execute();
             } else {
-                this.dungeon.status.event = false;
                 incrementRoom();
                 addDungeonLog("You moved to the next room.");
             }
         };
 
         const enterAction = () => {
-            sfxConfirm.play();
             if (this.dungeon.progress.room == this.dungeon.progress.roomLimit) {
                 guardianBattle();
             } else {
@@ -132,7 +129,6 @@ class EnemyEvent extends DungeonEvent {
 class NothingEvent extends DungeonEvent {
     execute() {
         addDungeonLog("You find nothing of interest.");
-        this.dungeon.status.event = false;
     }
 }
 
@@ -140,20 +136,16 @@ class BlessingEvent extends DungeonEvent {
     execute() {
         let eventRoll = randomizeNum(1, 2);
         if (eventRoll === 1) {
-            this.dungeon.status.event = true;
             blessingValidation(); // Ensure this function validates the possibility of a blessing
             let cost = this.player.blessing * (500 * (this.player.blessing * 0.5)) + 750;
 
             const offerAction = () => {
                 if (this.player.gold < cost) {
-                    sfxDeny.play();
                     addDungeonLog("You don't have enough gold.");
                 } else {
                     this.player.gold -= cost;
-                    sfxConfirm.play();
                     statBlessing(); // Ensure this function appropriately applies the blessing
                 }
-                this.dungeon.status.event = false;
             };
 
             const ignoreAction = () => {
@@ -165,7 +157,7 @@ class BlessingEvent extends DungeonEvent {
                 new Choice("Ignore", ignoreAction)
             ];
 
-            const message = `<span class="Legendary">You found a Statue of Blessing. Do you want to offer <i class="fas fa-coins" style="color: #FFD700;"></i><span class="Common">${nFormatter(cost)}</span> to gain blessings? (Blessing Lv.${this.player.blessing})</span>`;
+            const message = `<span class="Legendary">You found a Statue of Blessing. Do you want to offer <i class="ra ra-gem" style="color: #FFD700;"></i><span class="Common">${nFormatter(cost)}</span> to gain blessings? (Blessing Lv.${this.player.blessing})</span>`;
             new ChoiceEvent(this.player, this.dungeon, message, choices).execute();
         } else {
             new NothingEvent(this.player, this.dungeon).execute();
@@ -177,20 +169,16 @@ class CurseEvent extends DungeonEvent {
     execute() {
         let eventRoll = randomizeNum(1, 3);
         if (eventRoll === 1) {
-            this.dungeon.status.event = true;
             let curseLvl = Math.round((this.dungeon.settings.enemyScaling - 1) * 10);
             let cost = curseLvl * (10000 * (curseLvl * 0.5)) + 5000;
 
             const offerAction = () => {
                 if (this.player.gold < cost) {
-                    sfxDeny.play();
                     addDungeonLog("You don't have enough gold.");
                 } else {
                     this.player.gold -= cost;
-                    sfxConfirm.play();
                     cursedTotem(curseLvl);
                 }
-                this.dungeon.status.event = false;
             };
 
             const ignoreAction = () => {
@@ -249,7 +237,6 @@ class MonarchEvent extends DungeonEvent {
 
 class DungeonEventFactory {
     static createEvent(player, dungeon) {
-        logDungeonEvent
         const eventType = selectWeightedEvent(eventWeights); // Use the weighted selection function
         switch (eventType) {
             case 'nextroom':
@@ -297,19 +284,19 @@ function determineEventType(dungeonAction) {
 }
 
 const dungeonEvent = () => {
-    if (dungeon.status.exploring && !dungeon.status.event) {
+    console.log("event being called")
+    if (dungeon.status.exploring && !dungeon.status.event && !dungeon.status.paused) {
         if (player.energy > 0) {
+            pauseSwitch(false, true);
             player.energy -= player.energyCost;
             playerLoadStats();
+
+            dungeon.action++;
+            let event = DungeonEventFactory.createEvent(player, dungeon);
+            event.execute();
         } else {
-            dungeon.status.exploring = false;
-            dungeon.status.event = false;
+            pauseSwitch(false, false, true);
             addDungeonLog("You are too exhausted to continue exploring.", null, "You ran out of energy.");
         }
-
-        dungeon.action++;
-        let event = DungeonEventFactory.createEvent(player, dungeon);
-        event.execute();
-        sleep(2000);
     }
 };

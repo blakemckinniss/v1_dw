@@ -1,28 +1,30 @@
-setInterval(() => {
-    const now = new Date();
-    if (!player.buffs) player.buffs = [];
-    if (!player.banes) player.banes = [];
-    player.buffs.forEach(buff => {
-        if (buff.endTime < now) {
-            removeBuff(buff.name);
+function setUpRegenTimers() {
+    setInterval(() => {
+        const now = new Date();
+        if (!player.buffs) player.buffs = [];
+        if (!player.banes) player.banes = [];
+        player.buffs.forEach(buff => {
+            if (buff.endTime < now) {
+                removeBuff(buff.name);
+            }
+        });
+        player.banes.forEach(bane => {
+            if (bane.endTime < now) {
+                removeBane(bane.name);
+            }
+        });
+        updateBuffsBanesDisplay(); 
+        saveBuffsBanesToLocalStorage(); 
+    }, 1000);
+    
+    setInterval(() => {
+        if (!dungeon.status.exploring && player.energy < player.maxEnergy) {
+            player.energy = Math.min(player.energy + player.energyRegenRate, player.maxEnergy);
+            playerLoadStats();
+            addDungeonLog("You have regained some energy.", null, "Energy regeneration.");
         }
-    });
-    player.banes.forEach(bane => {
-        if (bane.endTime < now) {
-            removeBane(bane.name);
-        }
-    });
-    updateBuffsBanesDisplay(); 
-    saveBuffsBanesToLocalStorage(); 
-}, 1000);
-
-setInterval(() => {
-    if (!dungeon.status.exploring && player.energy < player.maxEnergy) {
-        player.energy = Math.min(player.energy + player.energyRegenRate, player.maxEnergy);
-        playerLoadStats();
-        addDungeonLog("You have regained some energy.", null, "Energy regeneration.");
-    }
-}, 60000); 
+    }, 60000); 
+}
 
 function addBuff(name, durationMinutes) {
     const endTime = new Date(new Date().getTime() + durationMinutes * 60000);

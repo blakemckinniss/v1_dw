@@ -1,11 +1,12 @@
+let devMode = false;
 const PLAYERNAME = "Jinx";
 const MAX_LEVEL = 100;
 const TIER_CAP = 10;
 const MAX_STAT_MULTIPLIERS = { hp: 40, atkDef: 16, cdAtkSpd: 3, crVamp: 2 };
 const STAT_CAPS = { atkSpd: 15, vamp: 8, critRate: 10 };
-const GOLD_WRAPPER = '<i class="fas fa-coins" style="color: #FFD700;"></i><span class="Common">${1}</span>'
+const GOLD_WRAPPER = '<i class="ra ra-gem" style="color: #FFD700;"></i><span class="Common">${1}</span>'
 const statNamesRequiringPercentage = new Set(["critRate", "critDmg", "atkSpd", "vamp"]);
-const regexTrailingZeros = /\.0+$|(\.[0-9]*[1-9])0+$/;
+const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
 const NULL_EQUIPMENT = {
   category: null,
   attribute: null,
@@ -16,7 +17,31 @@ const NULL_EQUIPMENT = {
   value: null,
   stats: [],
 };
-
+const modal = document.getElementById('vixenModal');
+const modalContent = document.querySelector('.modal-content');
+const mainVixen = document.querySelector("#vixensContainer > .vixen-item.vixen-1");
+let buttonChoices = [
+  {
+      title: '', 
+      description: ''
+  }
+];
+let buttonChoicesSettings = {
+  callToAction: '',
+  remainingChoices: 1,
+  rerollChances: '1/1',
+  message: ''
+};
+let vixenObject = {};
+const vixenObjectStats = {
+    "hp": 0,
+    "atk": 0,
+    "def": 0,
+    "atkSpd": 0,
+    "vamp": 0,
+    "critRate": 0,
+    "critDmg": 0
+};
 const rarityThresholds = {
   "Common": 3,
   "Uncommon": 4,
@@ -51,29 +76,40 @@ const EXP_DEFAULTS = {
   expMaxLvl: 100,
   lvlGained: 0
 };
+
 BASE_PLAYER = {
   name: PLAYERNAME,
   lvl: 1,
   stats: { ...BASE_STATS },
+  baseStats: {
+    hp: 5000,
+    atk: 1000,
+    def: 50,
+    pen: 0,
+    atkSpd: 0.6,
+    vamp: 0,
+    critRate: 0,
+    critDmg: 50
+  },
   equippedStats: {
-      hp: 0,
-      atk: 0,
-      def: 0,
-      pen: 0,
-      atkSpd: 0,
-      vamp: 0,
-      critRate: 0,
-      critDmg: 0,
-      hpPct: 0,
-      atkPct: 0,
-      defPct: 0,
-      penPct: 0,
+    hp: 0,
+    atk: 0,
+    def: 0,
+    pen: 0,
+    atkSpd: 0,
+    vamp: 0,
+    critRate: 0,
+    critDmg: 0,
+    hpPct: 0,
+    atkPct: 0,
+    defPct: 0,
+    penPct: 0,
   },
   bonusStats: { ...BASE_STATS, hp: 0, atk: 0, def: 0 },
   exp: { ...EXP_DEFAULTS },
   inventory: {
-      consumables: [],
-      equipment: []
+    consumables: [],
+    equipment: []
   },
   tavern: {
     vixen: []
@@ -89,14 +125,14 @@ BASE_PLAYER = {
   strength: 100,
   materials: [],
   vixens: [
-      {
-          "name": "Jinx",
-          "bonus": {
-              "stat": "atk",
-              "value": 10
-          },
-          "rarity": "Common"
-      }
+    {
+      "name": "Jinx",
+      "bonus": {
+        "stat": "atk",
+        "value": 10
+      },
+      "rarity": "Common"
+    }
   ],
   buffs: [],
   banes: [],
@@ -105,7 +141,7 @@ BASE_PLAYER = {
   energyCost: 1,
   energyRegenRate: 1,
   currentWeight: function () {
-      return this.materials.reduce((total, material) => total + (material.weight * material.quantity), 0);
+    return this.materials.reduce((total, material) => total + (material.weight * material.quantity), 0);
   }
 };
 
@@ -119,15 +155,15 @@ const rarityLoopCounts = {
 };
 const statsMapping = {
   "Damage": {
-      "Axe": "damageyStats",
-      "Scythe": "damageyStats",
-      "Dagger": "speedyStats",
-      "Flail": "speedyStats",
-      "Hammer": "dmgDefStats",
-      "default": "physicalStats"
+    "Axe": "damageyStats",
+    "Scythe": "damageyStats",
+    "Dagger": "speedyStats",
+    "Flail": "speedyStats",
+    "Hammer": "dmgDefStats",
+    "default": "physicalStats"
   },
   "Defense": {
-      "default": "defenseStats"
+    "default": "defenseStats"
   }
 };
 const statsTypes = {
@@ -140,54 +176,54 @@ const statsTypes = {
 
 const statsConfig = {
   Damage: {
-      Axe: ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
-      Scythe: ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
-      Dagger: ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
-      Flail: ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
-      Hammer: ["hp", "def", "atk", "atk", "critRate", "critDmg"],
-      default: ["atk", "atkSpd", "vamp", "critRate", "critDmg"]
+    Axe: ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
+    Scythe: ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
+    Dagger: ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
+    Flail: ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
+    Hammer: ["hp", "def", "atk", "atk", "critRate", "critDmg"],
+    default: ["atk", "atkSpd", "vamp", "critRate", "critDmg"]
   },
   Defense: ["hp", "hp", "def", "def", "atk"]
 };
 const skillEffects = {
-    "Remnant Razor": {
-        type: "percentageOfEnemyHp",
-        value: 8
-    },
-    "Titan's Will": {
-        type: "percentageOfPlayerHpMax",
-        value: 5
-    },
-    "Devastator": {
-        type: "percentageOfDamage",
-        value: 30
-    }
+  "Remnant Razor": {
+    type: "percentageOfEnemyHp",
+    value: 8
+  },
+  "Titan's Will": {
+    type: "percentageOfPlayerHpMax",
+    value: 5
+  },
+  "Devastator": {
+    type: "percentageOfDamage",
+    value: 30
+  }
 };
 const equipmentOptions = {
   "Damage": {
-      "types": ["Weapon"],
-      "categories": ["Sword", "Axe", "Hammer", "Dagger", "Flail", "Scythe"]
+    "types": ["Weapon"],
+    "categories": ["Sword", "Axe", "Hammer", "Dagger", "Flail", "Scythe"]
   },
   "Defense": {
-      "types": ["Armor", "Shield", "Helmet"],
-      "categoriesByType": {
-          "Armor": ["Plate", "Chain", "Leather"],
-          "Shield": ["Tower", "Kite", "Buckler"],
-          "Helmet": ["Great Helm", "Horned Helm"]
-      }
+    "types": ["Armor", "Shield", "Helmet"],
+    "categoriesByType": {
+      "Armor": ["Plate", "Chain", "Leather"],
+      "Shield": ["Tower", "Kite", "Buckler"],
+      "Helmet": ["Great Helm", "Horned Helm"]
+    }
   }
 };
 const vixenOptions = {
   "Damage": {
-      "types": ["Mage", "Rogue", "Warrior"],
-      "categories": ["Necromancer", "Assassin", "Berserker"]
+    "types": ["Mage", "Rogue", "Warrior"],
+    "categories": ["Necromancer", "Assassin", "Berserker"]
   },
   "Defense": {
-      "types": ["Priest", "Paladin", "Bard"],
-      "categoriesByType": {
-          "Healer": ["Priest", "Druid", "Shaman"],
-          "Enchanter": ["Monk"],
-      }
+    "types": ["Priest", "Paladin", "Bard"],
+    "categoriesByType": {
+      "Healer": ["Priest", "Druid", "Shaman"],
+      "Enchanter": ["Monk"],
+    }
   }
 };
 const rarityChances = {
@@ -200,15 +236,15 @@ const rarityChances = {
 };
 const trapTypes = ["spike pit", "arrow trap", "magical snare"];
 const iconMap = {
-  hp: "fas fa-heart", 
+  hp: "ra ra-hearts",
   atk: "ra ra-sword",
   def: "ra ra-round-shield",
   atkspd: "ra ra-player-dodge",
   vamp: "ra ra-dripping-blade",
-  crate: "ra ra-knife", 
+  crate: "ra ra-knife",
   cdmg: "ra ra-focused-lightning",
-  strength: "ra ra-muscle-up", 
-  energy: "ra ra-lightning-bolt", 
+  strength: "ra ra-muscle-up",
+  energy: "ra ra-lightning-bolt",
   luck: "ra ra-clover"
 };
 const equipmentIcons = {
@@ -268,7 +304,6 @@ const menuHtml = `
   <button id="player-menu">Jinx</button>
   <button id="stats">Current Run</button>
   <button id="volume-btn">Volume Settings</button>
-  <button id="export-import">Export/Import Data</button>
   <button id="quit-run">Abandon</button>
 </div>`;
 let dungeon = {
@@ -329,3 +364,22 @@ const statConfig = {
   def: { base: 10, multiplier: (value) => value * 10 },
   atkSpd: { base: 0.4, multiplier: (value) => 0.4 + (0.02 * value) }
 };
+
+const stackLimitMessage = "Cannot acquire more materials due to max stack limit.";
+const weightLimitMessage = "Cannot acquire more materials due to weight limit.";
+const defaultMaterialRarity = "Common";
+const defaultMaterialIcon = "loot_bag";
+const invalidMaterialDrop = "Invalid quantity to drop.";
+const promptMaterialDropMessage = "Enter quantity to drop:";
+const quantityAddedMessage = (materialName, quantity) => `Added ${quantity} of ${materialName} to inventory.`;
+const quantityToRemoveMessage = (materialName, quantity) => `Removed ${quantity} of ${materialName} from inventory.`;
+const materialNotFoundMessage = (materialName) => `${materialName} not found in inventory.`;
+const materialDisplayTemplate = (material) => `
+<p class="clickable-material">
+    <img src="${material.icon}" alt="${material.name} Icon" style="width: 32px; height: 32px; vertical-align: middle;">
+    <span class="material-name ${material.rarity}">${material.name} (${material.quantity})</span>
+</p>
+`;
+const materialIconTemplate = (materialData) => `/assets/materials/${materialData.icon || defaultMaterialIcon}.png`;
+const materialRemovedTemplate = (materialName) => `Removed all of ${materialName} from inventory.`;
+const promptMaterialTemplate = (text) => `Enter quantity to ${text.toLowerCase()}:`;

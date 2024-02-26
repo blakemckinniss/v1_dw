@@ -1,8 +1,4 @@
-let player = JSON.parse(localStorage.getItem("playerData"));
-let inventoryOpen = false;
-let tavernOpen = false;
-let materialOpen = false;
-let leveled = false;
+
 
 const playerExpGain = () => {
     player.exp.expCurr += enemy.rewards.exp;
@@ -38,49 +34,50 @@ const playerLvlUp = () => {
 
 const playerLoadStats = () => {
     prepPlayer();
+
+    showVixens();
     showEquipment();
     showInventory();
     showTavern();
+
     resetPlayerBonusStats();
     applyEquipmentStats();
-    applyVixenStats();
-    applyVixenBonuses();
-    updateVixensDisplay();
+
     updateMaterialsDisplay();
+
     updatePlayerStrengthDisplay();
     calculateStats();
 
     playerEnergyElement.textContent = player.energy;
     playerLuckElement.textContent = player.luck;
 
-    let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
     if (player.stats.hp > player.stats.hpMax) {
         player.stats.hp = player.stats.hpMax;
     }
     player.stats.hpPercent = Number((player.stats.hp / player.stats.hpMax) * 100).toFixed(2).replace(rx, "$1");
     player.exp.expPercent = Number((player.exp.expCurrLvl / player.exp.expMaxLvl) * 100).toFixed(2).replace(rx, "$1");
-    
+
     if (player.inCombat || playerDead) {
-        console.log('Player in combat');
-        const playerCombatHpElement = document.querySelector('#player-hp-battle');
-        const playerHpDamageElement = document.querySelector('#player-hp-dmg');
-        const playerExpElement = document.querySelector('#player-exp-bar');
-        const playerInfoElement = document.querySelector('#player-combat-info');
-        playerCombatHpElement.innerHTML = `&nbsp${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}(${player.stats.hpPercent}%)`;
+        playerCombatHpElement.innerHTML = `<span class="battleTextBar" id="playerHpText" style="position: absolute;">&nbsp${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}(${player.stats.hpPercent}%)</span>`;
         playerCombatHpElement.style.width = `${player.stats.hpPercent}%`;
         playerHpDamageElement.style.width = `${player.stats.hpPercent}%`;
         playerExpElement.style.width = `${player.exp.expPercent}%`;
         playerInfoElement.innerHTML = `${player.name} Lv.${player.lvl} (${player.exp.expPercent}%)`;
-    }    
+    }
 
     const combineStatsWithBonus = (base, bonus) => {
         const total = base + (base * (bonus / 100));
         const formattedBonus = formatBonusStat(bonus);
-        return `${nFormatter(total)} (${formattedBonus})`;
+        return `${nFormatter(parseInt(total))} <sup>${formattedBonus}</sup>`;
+    };
+    const combineStatsWithBonusPercent = (base, bonus) => {
+        const total = base + (base * (bonus / 100));
+        const formattedBonus = formatBonusStat(bonus);
+        return `${nFormatter(total)}% <sup>${formattedBonus}</sup>`;
     };
     const formatBonusStat = (bonus) => {
-        let formattedBonus = bonus.toFixed(2).replace(rx, "$1");
-        let colorClass = 'neutral'; 
+        let formattedBonus = bonus.toFixed(1).replace(rx, "$1");
+        let colorClass = 'neutral';
         if (bonus > 0) {
             formattedBonus = `+${formattedBonus}`;
             colorClass = 'positive';
@@ -89,16 +86,16 @@ const playerLoadStats = () => {
         }
         return `<span class="${colorClass}">${formattedBonus}%</span>`;
     };
-    
-    playerNameElement.innerHTML = `LVL: ${player.lvl} (${player.exp.expPercent}%)`;
-    playerGoldElement.innerHTML = `<i class="fas fa-coins" style="color: #FFD700;"></i>${nFormatter(player.gold)}`;
+
+    playerNameElement.innerHTML = `LVL: ${player.lvl} (${parseFloat(player.exp.expPercent).toFixed(1)}%)`;
+    playerGoldElement.innerHTML = `<i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(player.gold)}`;
     playerHpElement.innerHTML = `${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}`;
     playerAtkElement.innerHTML = combineStatsWithBonus(player.stats.atk, player.bonusStats.atk);
     playerDefElement.innerHTML = combineStatsWithBonus(player.stats.def, player.bonusStats.def);
-    playerAtkSpdElement.innerHTML = combineStatsWithBonus(player.stats.atkSpd, player.bonusStats.atkSpd);
-    playerVampElement.innerHTML = combineStatsWithBonus(player.stats.vamp, player.bonusStats.vamp);
-    playerCrateElement.innerHTML = combineStatsWithBonus(player.stats.critRate, player.bonusStats.critRate);
-    playerCdmgElement.innerHTML = combineStatsWithBonus(player.stats.critDmg, player.bonusStats.critDmg);
+    playerAtkSpdElement.innerHTML = combineStatsWithBonusPercent(player.stats.atkSpd, player.bonusStats.atkSpd);
+    playerVampElement.innerHTML = combineStatsWithBonusPercent(player.stats.vamp, player.bonusStats.vamp);
+    playerCrateElement.innerHTML = combineStatsWithBonusPercent(player.stats.critRate, player.bonusStats.critRate);
+    playerCdmgElement.innerHTML = combineStatsWithBonusPercent(player.stats.critDmg, player.bonusStats.critDmg);
     document.querySelector("#bonus-stats").style.display = 'none';
     console.log('Player stats loaded');
 };
@@ -111,28 +108,18 @@ function updatePlayerStrengthDisplay() {
 }
 
 const resetPlayerBonusStats = () => {
-    player.bonusStats = {
-        hp: 0,
-        atk: 0,
-        def: 0,
-        atkSpd: 0,
-        vamp: 0,
-        critRate: 0,
-        critDmg: 0,
-    };
+    player.bonusStats = vixenObjectStats;
 };
 
 const openInventory = () => {
-    sfxOpen.play();
-    dungeon.status.exploring = false;
+    pauseSwitch();
     inventoryOpen = true;
     let openInv = document.querySelector('#inventory');
-    let dimDungeon = document.querySelector('#dungeon-main');
+    let dimDungeonElement = document.querySelector('#dungeon-main');
     openInv.style.display = "flex";
-    dimDungeon.style.filter = "brightness(50%)";
+    dimDungeonElement.style.filter = "brightness(50%)";
 
     sellAllElement.onclick = function () {
-        sfxOpen.play();
         openInv.style.filter = "brightness(50%)";
         let rarity = sellRarityElement.value;
         defaultModalElement.style.display = "flex";
@@ -165,14 +152,10 @@ const openInventory = () => {
             openInv.style.filter = "brightness(100%)";
         };
         cancel.onclick = function () {
-            sfxDecline.play();
             defaultModalElement.style.display = "none";
             defaultModalElement.innerHTML = "";
             openInv.style.filter = "brightness(100%)";
         };
-    };
-    sellRarityElement.onclick = function () {
-        sfxOpen.play();
     };
     sellRarityElement.onchange = function () {
         let rarity = sellRarityElement.value;
@@ -181,28 +164,23 @@ const openInventory = () => {
 }
 
 const closeInventory = () => {
-    sfxDecline.play();
     let openInv = document.querySelector('#inventory');
-    let dimDungeon = document.querySelector('#dungeon-main');
+    let dimDungeonElement = document.querySelector('#dungeon-main');
     openInv.style.display = "none";
-    dimDungeon.style.filter = "brightness(100%)";
+    dimDungeonElement.style.filter = "brightness(100%)";
     inventoryOpen = false;
-    if (!dungeon.status.paused) {
-        dungeon.status.exploring = true;
-    }
+    pauseSwitch();
 }
 
 const openTavern = () => {
-    sfxOpen.play();
-    dungeon.status.exploring = false;
+    pauseSwitch();
     tavernOpen = true;
     let openTav = document.querySelector('#tavern');
-    let dimDungeon = document.querySelector('#dungeon-main');
+    let dimDungeonElement = document.querySelector('#dungeon-main');
     openTav.style.display = "flex";
-    dimDungeon.style.filter = "brightness(50%)";
+    dimDungeonElement.style.filter = "brightness(50%)";
 
     sellAllTavernElement.onclick = function () {
-        sfxOpen.play();
         openTav.style.filter = "brightness(50%)";
         let rarity = sellRarityElement.value;
         defaultModalElement.style.display = "flex";
@@ -235,14 +213,10 @@ const openTavern = () => {
             openInv.style.filter = "brightness(100%)";
         };
         cancel.onclick = function () {
-            sfxDecline.play();
             defaultModalElement.style.display = "none";
             defaultModalElement.innerHTML = "";
             openInv.style.filter = "brightness(100%)";
         };
-    };
-    sellRarityElement.onclick = function () {
-        sfxOpen.play();
     };
     sellRarityElement.onchange = function () {
         let rarity = sellRarityElement.value;
@@ -251,93 +225,114 @@ const openTavern = () => {
 }
 
 const closeTavern = () => {
-    sfxDecline.play();
     let openTav = document.querySelector('#tavern');
-    let dimDungeon = document.querySelector('#dungeon-main');
+    let dimDungeonElement = document.querySelector('#dungeon-main');
     openTav.style.display = "none";
-    dimDungeon.style.filter = "brightness(100%)";
+    dimDungeonElement.style.filter = "brightness(100%)";
     tavernOpen = false;
-    if (!dungeon.status.paused) {
-        dungeon.status.exploring = true;
+    if (!dungeon.status.paused && !dungeon.status.event) {
+        pauseSwitch(true, false);
     }
 }
 
 const continueExploring = () => {
-    if (!inventoryOpen && !dungeon.status.paused) {
-        dungeon.status.exploring = true;
+    if (!inventoryOpen && !dungeon.status.paused && !tavernOpen && !dungeon.status.event) {
+        pauseSwitch(true, false);
     }
 }
 
 const lvlupPopup = () => {
-    sfxLvlUp.play();
     addCombatLog(`You leveled up! (Lv.${player.lvl - player.exp.lvlGained} > Lv.${player.lvl})`);
     player.stats.hp += Math.round((player.stats.hpMax * 20) / 100);
     playerLoadStats();
     lvlupPanel.style.display = "flex";
-    combatPanel.style.filter = "brightness(50%)";
-
-    generateLvlStats(2, percentages);
+    combatPanelElement.style.filter = "brightness(50%)";
+    performStatReroll(2, percentages);
 }
 
-const generateLvlStats = (rerolls, percentages) => {
-    let selectedStats = [];
-    let stats = ["hp", "atk", "def", "atkSpd", "vamp", "critRate", "critDmg"];
-    while (selectedStats.length < 3) {
-        let randomIndex = Math.floor(Math.random() * stats.length);
-        if (!selectedStats.includes(stats[randomIndex])) {
-            selectedStats.push(stats[randomIndex]);
-        }
-    }
+const vixenPopup = () => {
+    vixenPanel.style.display = "flex";
+    updateBrightness(dimDungeonElement, "50%");
+}
 
-    const loadLvlHeader = () => {
-        lvlupSelectElement.innerHTML = `
-            <h1>Level Up!</h1>
-            <div class="content-head">
-                <h4>Remaining: ${player.exp.lvlGained}</h4>
-                <button id="lvlReroll">Reroll ${rerolls}/2</button>
-            </div>
-        `;
+function shuffleArray(array) {
+    const arr = array.slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+        const randomIndex = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[randomIndex]] = [arr[randomIndex], arr[i]];
     }
-    loadLvlHeader();
+    return arr;
+}
 
-    const lvlReroll = document.querySelector("#lvlReroll");
-    lvlReroll.addEventListener("click", function () {
-        if (rerolls > 0) {
-            sfxSell.play();
-            rerolls--;
-            loadLvlHeader();
-            generateLvlStats(rerolls, percentages);
-        } else {
-            sfxDeny.play();
+function formatStatisticForDisplay(statisticName) {
+    return statisticName
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/crit/g, 'C')
+        .trim()
+        .toUpperCase() + ' UP';
+}
+
+function updateLevelUpInterface(remainingRerolls, statPercentages) {
+    displayLevelUpHeader(remainingRerolls);
+    bindRerollButton(remainingRerolls, statPercentages);
+}
+
+function displayLevelUpHeader(remainingRerolls) {
+    lvlupSelectElement.innerHTML = `
+      <h1>Level Up!</h1>
+      <div class="content-head">
+        <h4>Remaining: ${remainingRerolls}</h4>
+        <button id="rerollButton">Reroll ${remainingRerolls}/2</button>
+      </div>`;
+}
+
+function bindRerollButton(remainingRerolls, statPercentages) {
+    document.querySelector("#rerollButton").addEventListener("click", () => {
+        if (remainingRerolls > 0) {
+            performStatReroll(--remainingRerolls, statPercentages);
         }
     });
+}
 
-    try {
-        for (let i = 0; i < 4; i++) {
-            let button = document.createElement("button");
-            button.id = "lvlSlot" + i;
-            let h3 = document.createElement("h3");
-            h3.innerHTML = selectedStats[i].replace(/([A-Z])/g, ".$1").replace(/crit/g, "c").toUpperCase() + " UP";
-            button.appendChild(h3);
-            let p = document.createElement("p");
-            p.innerHTML = `Increase bonus ${selectedStats[i].replace(/([A-Z])/g, ".$1").replace(/crit/g, "c").toUpperCase()} by ${percentages[selectedStats[i]]}%.`;
-            button.appendChild(p);
-            button.addEventListener("click", function () {
-                sfxItem.play();
-                player.bonusStats[selectedStats[i]] += percentages[selectedStats[i]];
-                if (player.exp.lvlGained > 1) {
-                    player.exp.lvlGained--;
-                    generateLvlStats(2, percentages);
-                } else {
-                    player.exp.lvlGained = 0;
-                    lvlupPanel.style.display = "none";
-                    combatPanel.style.filter = "brightness(100%)";
-                    leveled = false;
-                }
-                playerLoadStats();
-                saveData();
-            });
-            lvlupSelectElement.appendChild(button);
-        }
-    } catch (err) { }
+function performStatReroll(remainingRerolls, statPercentages) {
+    const stats = shuffleArray(["hp", "atk", "def", "atkSpd", "vamp", "critRate", "critDmg"]).slice(0, 3);
+    updateLevelUpInterface(remainingRerolls, statPercentages);
+    removePreviousStatButtons();
+    stats.forEach((stat, index) => {
+        generateStatSelectionButton(stat, index, statPercentages);
+    });
+}
+
+function removePreviousStatButtons() {
+    lvlupSelectElement.querySelectorAll('button:not(#rerollButton)').forEach(button => button.remove());
+}
+
+function generateStatSelectionButton(stat, index, statPercentages) {
+    const button = document.createElement("button");
+    button.id = `statOption${index}`;
+    button.innerHTML = `<h3>${formatStatisticForDisplay(stat)}</h3><p>Increase ${formatStatisticForDisplay(stat)} by ${statPercentages[stat]}%.</p>`;
+    button.onclick = () => enhanceStat(stat, statPercentages);
+    lvlupSelectElement.appendChild(button);
+}
+
+function enhanceStat(stat, statPercentages) {
+    sfxItem.play();
+    player.bonusStats[stat] += statPercentages[stat];
+    decreaseLevelGainedCounter();
+    if (player.exp.lvlGained > 0) {
+        performStatReroll(2, statPercentages);
+    } else {
+        hideLevelUpPanel();
+    }
+    playerLoadStats();
+    saveData();
+}
+
+function decreaseLevelGainedCounter() {
+    player.exp.lvlGained = Math.max(player.exp.lvlGained - 1, 0);
+}
+
+function hideLevelUpPanel() {
+    lvlupPanel.style.display = "none";
+    combatPanelElement.style.filter = "";
 }
