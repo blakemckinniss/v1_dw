@@ -17,6 +17,7 @@ const NULL_EQUIPMENT = {
   value: null,
   stats: [],
 };
+const combatBacklog = [];
 const modal = document.getElementById('vixenModal');
 const modalContent = document.querySelector('.modal-content');
 const mainVixen = document.querySelector("#vixensContainer > .vixen-item.vixen-1");
@@ -32,7 +33,7 @@ let buttonChoicesSettings = {
   rerollChances: '1/1',
   message: ''
 };
-let vixenObject = {};
+let vixenObject = [];
 const vixenObjectStats = {
     "hp": 0,
     "atk": 0,
@@ -115,7 +116,6 @@ BASE_PLAYER = {
     vixen: []
   },
   equipped: [],
-  enlisted: [],
   gold: 0,
   playtime: 0,
   kills: 0,
@@ -124,16 +124,7 @@ BASE_PLAYER = {
   luck: 1,
   strength: 100,
   materials: [],
-  vixens: [
-    {
-      "name": "Jinx",
-      "bonus": {
-        "stat": "atk",
-        "value": 10
-      },
-      "rarity": "Common"
-    }
-  ],
+  vixens: [],
   buffs: [],
   banes: [],
   energy: 100,

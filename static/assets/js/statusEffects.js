@@ -1,8 +1,6 @@
 function setUpRegenTimers() {
     setInterval(() => {
         const now = new Date();
-        if (!player.buffs) player.buffs = [];
-        if (!player.banes) player.banes = [];
         player.buffs.forEach(buff => {
             if (buff.endTime < now) {
                 removeBuff(buff.name);

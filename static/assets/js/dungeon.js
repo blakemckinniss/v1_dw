@@ -1,23 +1,37 @@
+dungeonActivityElement.addEventListener('click', toggleDungeonActivity);
 
 function toggleDungeonActivity() {
-    if (player.inCombat) {
-        return;
-    }
-    
-    const isExploring = dungeonActivityElement.innerHTML === `<i class="ra ra-monster-skull"></i>`;
+    if (player.inCombat) { return; }
+    const isExploring = isCurrentlyExploring();
+    logActivityState(isExploring);
+    toggleActivityIcon(isExploring);
+    resetDungeonLog();
+    updateDungeonActionSpinner(isExploring);
+}
+
+function isCurrentlyExploring() {
+    return dungeonActivityElement.innerHTML.includes("ra-monster-skull");
+}
+
+function logActivityState(isExploring) {
     console.log(isExploring ? "starting to explore" : "paused");
-    
-    dungeonActivityElement.innerHTML = isExploring ? `<i class="ra ra-desert-skull"></i>` : `<i class="ra ra-monster-skull"></i>`;
+}
+
+function toggleActivityIcon(isExploring) {
+    const icon = isExploring ? "ra-desert-skull" : "ra-monster-skull";
+    dungeonActivityElement.innerHTML = `<i class="ra ${icon}"></i>`;
     pauseSwitch(isExploring, false, !isExploring);
-    
+}
+
+function resetDungeonLog() {
     dungeon.backlog.length = 0;
     updateDungeonLog();
-    
+}
+
+function updateDungeonActionSpinner(isExploring) {
     const spinnerClass = isExploring ? "spinner-explore" : "spinner-rest";
     dungeonAction.innerHTML = `<div class="${spinnerClass}"><div class="spinner1"></div>`;
 }
-
-dungeonActivityElement.addEventListener('click', toggleDungeonActivity);
 
 const initialDungeonLoad = () => {
     if (localStorage.getItem("dungeonData") !== null) {
@@ -27,8 +41,7 @@ const initialDungeonLoad = () => {
             paused: true,
             event: false,
         };
-        dungeon.backlog.length = 0;
-        updateDungeonLog();
+        resetDungeonLog();
     }
     loadDungeonProgress();
     dungeonTimeElement.innerHTML = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
@@ -102,16 +115,14 @@ function getBonusIcon(stat) {
 }
 
 const engageBattle = () => {
-    showCombatInfo()
-    startCombat();
+    combatSystem.startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`You encountered ${enemy.name}.`);
     updateDungeonLog();
 }
 const mimicBattle = (type) => {
     generateRandomEnemy(type);
-    showCombatInfo()
-    startCombat();
+    combatSystem.startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`You encountered ${enemy.name}.`);
     addDungeonLog(`You encountered ${enemy.name}.`);
@@ -120,8 +131,7 @@ const mimicBattle = (type) => {
 const guardianBattle = () => {
     incrementRoom();
     generateRandomEnemy("guardian");
-    showCombatInfo()
-    startCombat();
+    combatSystem.startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`Floor Guardian ${enemy.name} is blocking your way.`);
     addDungeonLog("You moved to the next floor.");
@@ -129,8 +139,7 @@ const guardianBattle = () => {
 
 const specialBossBattle = () => {
     generateRandomEnemy("sboss");
-    showCombatInfo()
-    startCombat();
+    combatSystem.startCombat();
     console.log("You encountered: ", enemy.name);
     addCombatLog(`Dungeon Monarch ${enemy.name} has awoken.`);
     addDungeonLog(`Dungeon Monarch ${enemy.name} has awoken.`);
@@ -143,8 +152,7 @@ const fleeBattle = () => {
         player.inCombat = false;
     } else {
         addDungeonLog(`You failed to escape!`);
-        showCombatInfo()
-        startCombat();
+        combatSystem.startCombat();
         addCombatLog(`You encountered ${enemy.name}.`);
         addCombatLog(`You failed to escape!`);
     }

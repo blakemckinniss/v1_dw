@@ -656,7 +656,7 @@ button:focus {
     color: rgb(200, 200, 200);
 }
 
-.Uncommon {
+.Epic {
     color: #88f;
 }
 
@@ -664,8 +664,8 @@ button:focus {
     color: #0080ff;
 }
 
-.Epic {
-    color: #1ba29b;
+.Uncommon {
+    color: #1ba22d;
 }
 
 .Legendary {

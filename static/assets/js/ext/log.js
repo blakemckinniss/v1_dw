@@ -70,3 +70,20 @@ const addDungeonLogPaused = (message, choices, subjectObj = "") => {
     dungeon.backlog.push(message);
     updateDungeonLog(choices);
 };
+
+const addCombatLog = (message) => {
+    combatBacklog.push(message);
+    updateCombatLog();
+}
+
+const updateCombatLog = () => {
+    let combatLogBox = document.getElementById("combatLogBox");
+    combatLogBox.innerHTML = "";
+
+    for (let message of combatBacklog) {
+        let logElement = document.createElement("p");
+        logElement.innerHTML = message;
+        combatLogBox.appendChild(logElement);
+    }
+    combatLogBox.scrollTop = combatLogBox.scrollHeight;
+}

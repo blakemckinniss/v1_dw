@@ -1,5 +1,7 @@
 
 let player = JSON.parse(localStorage.getItem("playerData"));
+
+
 let inventoryOpen = false;
 let tavernOpen = false;
 let materialOpen = false;
@@ -9,15 +11,10 @@ window.addEventListener("load", initializeGame);
 
 function initializeGame() {
     if (!player) {
-        initializePlayer();
-    } else {
-        enterDungeon();
+        player = BASE_PLAYER;
     }
-}
-
-function initializePlayer() {
-    player = BASE_PLAYER;
-    saveData();
+    normalizePlayer()
+    enterDungeon();
 }
 
 const enterDungeon = () => {

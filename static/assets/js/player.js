@@ -1,5 +1,3 @@
-
-
 const playerExpGain = () => {
     player.exp.expCurr += enemy.rewards.exp;
     player.exp.expCurrLvl += enemy.rewards.exp;
@@ -33,8 +31,6 @@ const playerLvlUp = () => {
 }
 
 const playerLoadStats = () => {
-    prepPlayer();
-
     showVixens();
     showEquipment();
     showInventory();
@@ -57,7 +53,7 @@ const playerLoadStats = () => {
     player.stats.hpPercent = Number((player.stats.hp / player.stats.hpMax) * 100).toFixed(2).replace(rx, "$1");
     player.exp.expPercent = Number((player.exp.expCurrLvl / player.exp.expMaxLvl) * 100).toFixed(2).replace(rx, "$1");
 
-    if (player.inCombat || playerDead) {
+    if (player.inCombat) {
         playerCombatHpElement.innerHTML = `<span class="battleTextBar" id="playerHpText" style="position: absolute;">&nbsp${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}(${player.stats.hpPercent}%)</span>`;
         playerCombatHpElement.style.width = `${player.stats.hpPercent}%`;
         playerHpDamageElement.style.width = `${player.stats.hpPercent}%`;

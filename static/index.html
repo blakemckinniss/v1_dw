@@ -211,7 +211,7 @@
         <div class="stat-panel">
           <div class="box">
             <div class="box-head">
-              <h4>Trinkets</h4>
+              <h4>Artifacts</h4>
               <p id="unequip-all"><i class="fa fa-circle-xmark"></i></p>
             </div>
             <div id="playerEquipment"></div>
@@ -326,9 +326,23 @@
     <div class="loader"></div>
   </div> -->
   <!-- Dev GUI Panel -->
-  <div id="devGuiPanel" style="display: none;">
+  <div id="devGuiPanel" style="display:flex; flex-direction:column; display: none;">
     <!-- Add your buttons and inputs here -->
     <button onclick="testChoiceModal()">Test Choice Modal</button>
+    <button onclick="mimicBattle('chest');">Start Combat</button>
+    <button onclick="openLvlupPanel()">Test Level Up</button>
+    <button onclick="openVixenPanel()">Test Vixen Panel</button>
+    <button onclick="openVixenModal()">Test Vixen Modal</button>
+    <button onclick="openEquipmentInfo()">Test Equipment Info</button>
+    <button onclick="openVixenInfo()">Test Vixen Info</button>
+    <button onclick="openConfirmationModal()">Test Confirmation Modal</button>
+    <button onclick="openMaterialModal()">Test Material Modal</button>
+    <button onclick="openMenuModal()">Test Menu Modal</button>
+    <button onclick="openCombatPanel()">Test Combat Panel</button>
+    <button onclick="openTavern()">Test Tavern</button>
+    <button onclick="openInventory()">Test Inventory</button>
+    <button onclick="openDungeonActivity()">Test Dungeon Activity</button>
+    <button onclick="progressReset()">Total Reset</button>
     <!-- Add more elements as needed -->
   </div>
 

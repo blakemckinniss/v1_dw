@@ -1,125 +1,188 @@
-const validateHP = () => {
-    if (player.stats.hp < 1) {
-        handleDeath(player, true);
-    } else if (enemy.stats.hp < 1) {
-        handleDeath(enemy, false);
-        handleEnemyRewards();
+class CombatSystem {
+    constructor() {
+        this.combatSeconds = 0;
+        this.combatTimer = null;
     }
-}
 
-const handleDeath = (entity, isPlayer) => {
-    entity.stats.hp = 0;
-    const logMessage = isPlayer ? "You died." : `${entity.name} died! (${formatCombatTime(combatSeconds)})`;
-    updateLog(isPlayer, logMessage);
-    if (isPlayer) {
-        player.deaths++;
-        preparePlayerRevival();
-    } else {
-        player.kills++;
-        dungeon.statistics.kills++;
+    combatCounter = () => {
+        this.combatSeconds++;
     }
-    updateCombatState(isPlayer);
-}
 
-const preparePlayerRevival = () => {
-    const battleButton = document.querySelector("#battleButton");
-    battleButton.textContent = "Back to Menu";
-    battleButton.onclick = resetStatsAndReturnToMenu;
-    player.stats.hp = 1; // Assume revival with 1 HP if not in combat
-}
-
-const handleEnemyRewards = () => {
-    addCombatLog(`You earned ${formatNumber(enemy.rewards.exp)} exp.`);
-    playerExpGain();
-    addCombatLog(`${enemy.name} dropped ${formatReward(enemy.rewards.gold)} gold.`);
-    player.gold += enemy.rewards.gold;
-    player.stats.hp += Math.round(player.stats.hpMax * 0.2);
-    updateStatsUI();
-    closeBattlePanel();
-}
-
-const updateLog = (isPlayer, message) => {
-    isPlayer ? addCombatLog(message) : addDungeonLog(message);
-}
-
-const updateCombatState = (isPlayer) => {
-    if (isPlayer) {
-        showRevivalOptions();
-    } else {
-        showLootOptions();
+    formatCombatTime = (seconds) => {
+        return new Date(seconds * 1000).toISOString().substr(11, 8);
     }
-}
 
+    startCombat = () => {
+        console.log("Combat started");
+        player.inCombat = true;
+        this.showCombatInfo();
+        pauseSwitch(false, true, true); // External function
+        combatPanelElement.style.display = "flex"; // External DOM element
+        setTimeout(this.playerAttack, 1000 / player.stats.atkSpd);
+        setTimeout(this.enemyAttack, 1000 / enemy.stats.atkSpd);
+        dimDungeonElement.style.filter = "brightness(50%)"; // External DOM element
 
+        console.log("Player in combat: ", player.inCombat);
+        playerLoadStats(); // External function
+        enemyLoadStats(); // External function
 
-const formatCombatTime = (seconds) => {
-    return new Date(seconds * 1000).toISOString().substr(14, 19);
-}
+        this.combatTimer = setInterval(this.combatCounter, 1000);
+    }
 
-const playerAttack = () => {
-    if (!player.inCombat) return;
-    const damageInfo = calculateDamage(player, enemy);
-    enemy.stats.hp -= damageInfo.damage;
-    player.stats.hp += damageInfo.lifesteal; // Assuming player can heal
-    updateCombatUI();
-    if (enemy.stats.hp < 1) validateHP();
-}
+    playerAttack = () => {
+        console.log("Player attacking");
+        if (!player.inCombat) return;
+        const damageInfo = this.calculateDamage(player, enemy); // External function
+        enemy.stats.hp -= damageInfo.damage;
+        player.stats.hp += damageInfo.lifesteal;
+        this.combatAnimation(false, damageInfo.damage, damageInfo.crit);
 
-const enemyAttack = () => {
-    if (!player.inCombat) return;
-    const damageInfo = calculateDamage(enemy, player);
-    player.stats.hp -= damageInfo.damage;
-    updateCombatUI();
-    if (player.stats.hp < 1) validateHP();
-}
+        console.log("Player HP: ", player.stats.hp);
+        playerLoadStats(); // External function
+        enemyLoadStats(); // External function
+        if (enemy.stats.hp < 1) this.validateHP();
+        if (player.inCombat) {
+            setTimeout(this.playerAttack, 1000 / player.stats.atkSpd);
+        }
+    }
 
-const showRevivalOptions = () => {
-    const revivalButton = document.querySelector("#revivalButton");
-    revivalButton.style.display = "block"; // Assuming a button exists for revival
-    revivalButton.onclick = () => {
-        player.stats.hp = Math.max(1, player.stats.hp); // Revive the player with minimum 1 HP
-        updateStatsUI(); // Update the UI with the new player HP
-        closeBattlePanel(); // Close the battle panel and possibly show the main menu
+    enemyAttack = () => {
+        console.log("Enemy attacking");
+        if (!player.inCombat) return;
+        const damageInfo = this.calculateDamage(enemy, player); // External function
+        player.stats.hp -= damageInfo.damage;
+        this.combatAnimation(true, damageInfo.damage, damageInfo.crit);
+
+        console.log("Enemy HP: ", enemy.stats.hp);
+        playerLoadStats(); // External function
+        enemyLoadStats(); // External function
+        if (player.stats.hp < 1) this.validateHP();
+        if (player.inCombat) {
+            setTimeout(this.enemyAttack, 1000 / enemy.stats.atkSpd);
+        }
+    }
+
+    calculateDamage = (attacker, defender) => {
+        let baseDamage = attacker.stats.atk - defender.stats.def;
+        if (devMode) {
+            baseDamage = 50;
+        }
+        baseDamage = Math.max(baseDamage, 0); 
+        const critChance = Math.random() < attacker.stats.critRate ? 2 : 1; 
+        const damage = Math.round(baseDamage * critChance);
+        const lifesteal = Math.round(damage * (attacker.stats.vamp / 100)); 
+
+        console.log("Damage: ", damage);
+        return { damage, lifesteal, crit: critChance === 2};
+    }
+
+    validateHP = () => {
+        console.log("Validating HP");
+        console.log("Player HP: ", player.stats.hp);
+        console.log("Enemy HP: ", enemy.stats.hp);
+        if (player.stats.hp < 1) {
+            console.log("Player died");
+            handleDeath(player, true); // External function
+            this.updateCombatState(true);
+        } else if (enemy.stats.hp < 1) {
+            document.querySelector("#enemyHpText").innerHTML = `&nbsp 0/${nFormatter(enemy.stats.hpMax)}&nbsp (0%)`;
+            console.log("Enemy died");
+            this.handleDeath(enemy, false);
+            this.updateCombatState(false);
+        }
+    }
+
+    handleDeath = (entity, isPlayer) => {
+        console.log("Handling death");
+        entity.stats.hp = 0;
+        if (isPlayer) {
+            addCombatLog(isPlayer, "You died.");
+            player.stats.hp = 1;
+        } else {
+            addCombatLog(isPlayer, `${entity.name} died! (${this.formatCombatTime(combatSeconds)})`);
+            closeBattlePanel();
+            endCombat();
+            pauseSwitch(true, false, false);
+        }
+    }
+
+    combatAnimation = (isPlayer, damage, crit) => {
+        let selector = isPlayer ? "#player-sprite" : "#enemy-sprite";
+        let battleSprite = document.querySelector(selector);
+        if (battleSprite) { // Added error handling
+            battleSprite.classList.add("animation-shake");
+            setTimeout(() => {
+                battleSprite.classList.remove("animation-shake");
+            }, 200);
+        }
+
+        const dmgContainer = document.querySelector("#dmg-container");
+        if (dmgContainer) { // Added error handling
+            const dmgNumber = document.createElement("p");
+            dmgNumber.classList.add("dmg-numbers");
+            dmgNumber.style.color = crit ? "gold" : ""; // Simplified crit handling
+            dmgNumber.textContent = crit ? `${nFormatter(damage)}!` : nFormatter(damage); // External function
+            dmgContainer.appendChild(dmgNumber);
+            setTimeout(() => {
+                if (dmgContainer.firstChild) {
+                    dmgContainer.removeChild(dmgContainer.firstChild);
+                }
+            }, 370);
+        }
+    }
+
+    updateCombatState = (isPlayer) => {
+        if (isPlayer) {
+            showRevivalOptions(); // External function
+        } else {
+            this.handleEnemyRewards(); // External function
+        }
+    }
+
+    endCombat = () => {
+        console.log("Combat ended");
+        player.inCombat = false;
+        pauseSwitch(true, false, false); // External function
+        clearInterval(this.combatTimer);
+        this.combatSeconds = 0;
+    }
+
+    handleEnemyRewards = () => {
+        addCombatLog(`You earned ${nFormatter(enemy.rewards.exp)} exp.`);
+        playerExpGain();
+        addCombatLog(`${enemy.name} dropped <i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(enemy.rewards.gold)} gold.`);
+        player.gold += enemy.rewards.gold;
+        if (enemy.rewards.drop) {
+            createEquipmentPrint("combat");
+        }
+        player.stats.hp += Math.round((player.stats.hpMax * 20) / 100);
+        playerLoadStats();
+        closeBattlePanel();
+        pauseSwitch(true, false, false);
+    }
+
+    closeBattlePanel = () => {
+        document.querySelector("#battleButton").addEventListener("click", function () {
+            let dimDungeonElement = document.querySelector('#dungeon-main');
+            dimDungeonElement.style.filter = "brightness(100%)";
+            combatPanelElement.style.display = "none";
+            enemyDead = false;
+            combatBacklog.length = 0;
+        });
+    }
+
+    showCombatInfo = () => {
+        document.querySelector("#enemy-combat-info").textContent = `${enemy.name} Lv.${enemy.lvl}`;
+        document.querySelector("#enemyHpText").innerHTML = `&nbsp${nFormatter(enemy.stats.hp)}/${nFormatter(enemy.stats.hpMax)}&nbsp(${enemy.stats.hpPercent}%)`;
+        document.querySelector("#enemy-sprite").src = `./assets/img/vixen.jpg`;
+        document.querySelector("#enemy-sprite").alt = enemy.name;
+        document.querySelector("#enemy-sprite").style.width = enemy.image.size + 'px';
+        document.querySelector("#player-combat-info").textContent = `Your Player Info Here`;
+        document.querySelector("#playerHpText").innerHTML = `&nbsp${nFormatter(player.stats.hp)}/${nFormatter(player.stats.hpMax)}&nbsp(${player.stats.hpPercent}%)`;
+        const playerExpPercentage = ((player.stats.exp / player.stats.expMax) * 100).toFixed(2);
+        document.querySelector("#player-exp-bar").style.width = playerExpPercentage + '%';
+        document.querySelector("#player-exp-bar").textContent = `EXP: ${nFormatter(player.stats.exp)}/${nFormatter(player.stats.expMax)}`;
     };
 }
 
-
-const showLootOptions = () => {
-    // Assuming there is a UI element to show loot options
-    const lootContainer = document.querySelector("#lootContainer");
-    lootContainer.innerHTML = `You defeated ${enemy.name}! <br> Gold earned: ${enemy.rewards.gold}.`;
-    lootContainer.style.display = "block";
-}
-
-const calculateDamage = (attacker, defender) => {
-    let baseDamage = attacker.stats.atk - defender.stats.def;
-    baseDamage = Math.max(baseDamage, 0); // Prevent negative damage
-    const critChance = Math.random() < attacker.stats.critRate ? 2 : 1; // Simplified crit calculation
-    const damage = Math.round(baseDamage * critChance);
-    const lifesteal = Math.round(damage * (attacker.stats.vamp / 100)); // Simplified lifesteal calculation
-    return { damage, lifesteal };
-}
-
-const updateStatsUI = () => {
-    document.querySelector("#playerHpText").textContent = `HP: ${player.stats.hp}/${player.stats.hpMax}`;
-    document.querySelector("#enemyHpText").textContent = `HP: ${enemy.stats.hp}/${enemy.stats.hpMax}`;
-    // Update any additional UI elements related to stats here, such as EXP bars, gold counters, etc.
-}
-
-const resetStatsAndReturnToMenu = () => {
-    // Assuming there's a function to reset player and enemy stats
-    resetPlayerStats();
-    resetEnemyStats();
-    const mainMenu = document.querySelector("#mainMenu");
-    mainMenu.style.display = "block"; // Show the main menu
-    const combatPanel = document.querySelector("#combatPanel");
-    combatPanel.style.display = "none"; // Hide the combat panel
-    // Reset any other game state or UI elements as needed
-}
-
-const closeBattlePanel = () => {
-    const battlePanel = document.querySelector("#combatPanel");
-    battlePanel.style.display = "none"; // Assuming a simple display toggle to close
-    // Additionally, clear any combat-related messages or temporary UI elements
-    clearCombatLogs();
-}
+const combatSystem = new CombatSystem();
