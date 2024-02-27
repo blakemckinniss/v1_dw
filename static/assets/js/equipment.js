@@ -43,7 +43,7 @@ const createEquipment = () => {
         equipment.tier = Math.round((enemyScaling - 1) * 10);
         let hpScaling = (40 * randomizeDecimal(0.5, 1.5)) + ((40 * randomizeDecimal(0.5, 1.5)) * statMultiplier);
         let atkDefScaling = (16 * randomizeDecimal(0.5, 1.5)) + ((16 * randomizeDecimal(0.5, 1.5)) * statMultiplier);
-        let cdAtkSpdScaling = (3 * randomizeDecimal(0.5, 1.5)) + ((3 * randomizeDecimal(0.5, 1.5)) * statMultiplier);
+        let cdSpeedScaling = (3 * randomizeDecimal(0.5, 1.5)) + ((3 * randomizeDecimal(0.5, 1.5)) * statMultiplier);
         let crVampScaling = (2 * randomizeDecimal(0.5, 1.5)) + ((2 * randomizeDecimal(0.5, 1.5)) * statMultiplier);
         if (statType === "hp") {
             statValue = randomizeNum(hpScaling * 0.5, hpScaling);
@@ -54,8 +54,8 @@ const createEquipment = () => {
         } else if (statType === "def") {
             statValue = randomizeNum(atkDefScaling * 0.5, atkDefScaling);
             equipmentValue += statValue * 2.5;
-        } else if (statType === "atkSpd") {
-            statValue = randomizeDecimal(cdAtkSpdScaling * 0.5, cdAtkSpdScaling);
+        } else if (statType === "speed") {
+            statValue = randomizeDecimal(cdSpeedScaling * 0.5, cdSpeedScaling);
             if (statValue > 15) {
                 statValue = 15 * randomizeDecimal(0.5, 1);
                 loopCount++;
@@ -76,7 +76,7 @@ const createEquipment = () => {
             }
             equipmentValue += statValue * 20.83;
         } else if (statType === "critDmg") {
-            statValue = randomizeDecimal(cdAtkSpdScaling * 0.5, cdAtkSpdScaling);
+            statValue = randomizeDecimal(cdSpeedScaling * 0.5, cdSpeedScaling);
             equipmentValue += statValue * 8.33;
         }
 
@@ -141,7 +141,7 @@ const showItemInfo = (item, icon, type, i) => {
                 <h5 class="lvltier ${item.rarity}"><b>Lv.${item.lvl} Tier ${item.tier}</b></h5>
                 <ul>
                 ${item.stats.map(stat => {
-        if (Object.keys(stat)[0] === "critRate" || Object.keys(stat)[0] === "critDmg" || Object.keys(stat)[0] === "atkSpd" || Object.keys(stat)[0] === "vamp") {
+        if (Object.keys(stat)[0] === "critRate" || Object.keys(stat)[0] === "critDmg" || Object.keys(stat)[0] === "speed" || Object.keys(stat)[0] === "vamp") {
             return `<li>${Object.keys(stat)[0].toString().replace(/([A-Z])/g, ".$1").replace(/crit/g, "c").toUpperCase()}+${stat[Object.keys(stat)[0]].toFixed(2).replace(rx, "$1")}%</li>`;
         }
         else {
@@ -264,7 +264,7 @@ const showInventory = () => {
                 .replace(/([A-Z])/g, ".$1")
                 .replace(/crit/g, "c")
                 .toUpperCase();
-            if (["critRate", "critDmg", "atkSpd", "vamp"].includes(statKey)) {
+            if (["critRate", "critDmg", "speed", "vamp"].includes(statKey)) {
                 const value = stat[statKey].toFixed(2).replace(rx, "$1");
                 return `${formattedKey} +${value}%`;
             } else {
@@ -335,24 +335,7 @@ const showEquipment = () => {
 }
 
 const applyEquipmentStats = () => {
-    player.equippedStats = {
-        hp: 0,
-        atk: 0,
-        def: 0,
-        atkSpd: 0,
-        vamp: 0,
-        critRate: 0,
-        critDmg: 0
-    };
-    for (let i = 0; i < player.equipped.length; i++) {
-        const item = player.equipped[i];
-        item.stats.forEach(stat => {
-            for (const key in stat) {
-                player.equippedStats[key] += stat[key];
-            }
-        });
-    }
-    calculateStats();
+
 }
 
 const unequipAll = () => {
@@ -439,7 +422,7 @@ const createEquipmentPrint = (condition) => {
                 <h5 class="${item.rarity}"><b>Lv.${item.lvl} Tier ${item.tier}</b></h5>
                 <ul>
                 ${item.stats.map(stat => {
-        if (Object.keys(stat)[0] === "critRate" || Object.keys(stat)[0] === "critDmg" || Object.keys(stat)[0] === "atkSpd" || Object.keys(stat)[0] === "vamp") {
+        if (Object.keys(stat)[0] === "critRate" || Object.keys(stat)[0] === "critDmg" || Object.keys(stat)[0] === "speed" || Object.keys(stat)[0] === "vamp") {
             return `<li>${Object.keys(stat)[0].toString().replace(/([A-Z])/g, ".$1").replace(/crit/g, "c").toUpperCase()}+${stat[Object.keys(stat)[0]].toFixed(2).replace(rx, "$1")}%</li>`;
         }
         else {

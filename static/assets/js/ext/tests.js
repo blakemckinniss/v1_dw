@@ -124,7 +124,7 @@ function removeTestMaterial(materialName, quantityToRemove) {
             console.log(`Removed all of ${materialName} from inventory.`);
             player.materials.splice(materialIndex, 1); // Remove the material entirely
         }
-        updateMaterialsDisplay();
+        showMaterials();
     } else {
         console.log(`${materialName} not found in inventory.`);
     }
@@ -164,7 +164,7 @@ function resetGame() {
 
     // Update the UI to reflect the reset state
     // updatePlayerStatsDisplay();
-    // updateMaterialsDisplay();
+    // showMaterials();
     // Call other UI update functions as necessary
 
     // Optionally, restart the game or redirect the player to the start menu

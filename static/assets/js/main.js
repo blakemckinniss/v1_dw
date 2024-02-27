@@ -30,29 +30,13 @@ const enterDungeon = () => {
 const saveData = () => {
     const playerData = JSON.stringify(player);
     const dungeonData = JSON.stringify(dungeon);
-    const enemyData = JSON.stringify(enemy);
+    // const enemyData = JSON.stringify(enemy);
     const volumeData = JSON.stringify(volume);
     localStorage.setItem("playerData", playerData);
     localStorage.setItem("dungeonData", dungeonData);
-    localStorage.setItem("enemyData", enemyData);
+    // localStorage.setItem("enemyData", enemyData);
     localStorage.setItem("volumeData", volumeData);
 }
-
-const calculateStats = () => {
-    player.stats.hpMax = Math.round(player.baseStats.hp * (1 + player.bonusStats.hp / 100) + player.equippedStats.hp);
-    player.stats.atk = Math.round(player.baseStats.atk * (1 + player.bonusStats.atk / 100) + player.equippedStats.atk);
-    player.stats.def = Math.round(player.baseStats.def * (1 + player.bonusStats.def / 100) + player.equippedStats.def);
-
-    const equipmentAtkSpd = player.baseStats.atkSpd * (player.equippedStats.atkSpd / 100);
-    player.stats.atkSpd = player.baseStats.atkSpd * (1 + player.bonusStats.atkSpd / 100) + equipmentAtkSpd;
-    player.stats.vamp = player.baseStats.vamp + player.bonusStats.vamp + player.equippedStats.vamp;
-    player.stats.critRate = player.baseStats.critRate + player.bonusStats.critRate + player.equippedStats.critRate;
-    player.stats.critDmg = player.baseStats.critDmg + player.bonusStats.critDmg + player.equippedStats.critDmg;
-
-    if (player.stats.atkSpd > 2.5) {
-        player.stats.atkSpd = 2.5;
-    }
-};
 
 close.onclick = function () {
     defaultModalElement.style.display = "none";
@@ -66,7 +50,7 @@ const objectValidation = () => {
     if (player.tempStats == undefined) {
         player.tempStats = {};
         player.tempStats.atk = 0;
-        player.tempStats.atkSpd = 0;
+        player.tempStats.speed = 0;
     }
     saveData();
 }

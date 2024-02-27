@@ -21,7 +21,7 @@ function addMaterial(materialData) {
     addDungeonLogPaused(quantityAddedMessage(material.name, material.quantity));
     const existingMaterial = player.materials.find(m => m.name === material.name);
     existingMaterial ? updateMaterialQuantity(existingMaterial, material.quantity) : player.materials.push(material);
-    updateMaterialsDisplay();
+    showMaterials();
 }
 
 function removeMaterial(materialName, quantityToRemove) {
@@ -38,10 +38,10 @@ function removeMaterial(materialName, quantityToRemove) {
         material.quantity -= quantityToRemove;
         addDungeonLogPaused(quantityToRemoveMessage(materialName, quantityToRemove));
     }
-    updateMaterialsDisplay();
+    showMaterials();
 }
 
-function updateMaterialsDisplay() {
+function showMaterials() {
     const materialsPanel = document.querySelector("#materialsPanel");
     materialsPanel.innerHTML = player.materials.map(material => materialDisplayTemplate(material)).join('');
     
@@ -130,7 +130,7 @@ function sellMaterial(index, quantityToSell) {
             player.materials.splice(index, 1);
         }
         
-        updateMaterialsDisplay();
+        showMaterials();
         closeMaterialModal(`Sold ${sellQuantity} ${material.name} for ${sellQuantity * material.sellValue} gold.`);
     } else {
         addDungeonLogPaused("Invalid quantity to sell.");
@@ -148,7 +148,7 @@ function dropMaterial(index, quantityToDrop) {
             player.materials.splice(index, 1);
         }
         
-        updateMaterialsDisplay();
+        showMaterials();
         closeMaterialModal(`Dropped ${dropQuantity} ${material.name}.`);
     } else {
         addDungeonLogPaused("Invalid quantity to drop.");

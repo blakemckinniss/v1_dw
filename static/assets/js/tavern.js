@@ -65,56 +65,6 @@ function updateVixenModal(vixenData) {
     });
 }
 
-
-function tallyVixenStats() {
-    const statNameMap = {
-        "atk": "atk",
-        "hp": "hp",
-        "def": "def",
-        "atkspd": "atkSpd",
-        "vamp": "vamp",
-        "cdmg": "critDmg",
-        "crate": "critRate",
-    };
-
-    console.log("Tallying vixen stats...", vixenObject);
-
-    vixenObject.forEach(tavernVixen => {
-        tavernVixen.stats.forEach(stat => {
-            const [statName, valueStr] = Object.entries(stat)[0];
-            // Ensure value is treated as a float for percentage stats or an integer for others
-            const value = statName.endsWith('%') || statName === 'vamp' || statName === 'crate' || statName === 'cdmg' ? parseFloat(valueStr) : parseInt(valueStr, 10);
-
-            const normalizedStatName = statNameMap[statName.toLowerCase().replace(' %', '')];
-
-            if (normalizedStatName && vixenObjectStats.hasOwnProperty(normalizedStatName)) {
-                vixenObjectStats[normalizedStatName] += value;
-            } else {
-                console.warn(`Stat name ${statName} not recognized.`);
-            }
-        });
-    });
-
-    console.log(vixenObjectStats);
-}
-
-function addVixenStatsToPlayer() {
-    if (!player || !player.bonusStats) {
-        console.error('Player or player.bonusStats is undefined');
-        return;
-    }
-
-    Object.keys(vixenObjectStats).forEach(statName => {
-        if (player.bonusStats.hasOwnProperty(statName)) {
-            player.bonusStats[statName] += vixenObjectStats[statName];
-        } else {
-            console.warn(`Stat ${statName} not found in player.bonusStats`);
-        }
-    });
-
-    return player;
-}
-
 function generateVixenRarity() {
     const rand = Math.random();
     let sum = 0;
@@ -127,7 +77,7 @@ function generateVixenRarity() {
 
 function generateVixenStats(rarity) {
     const statsMap = {};
-    const possibleStats = ["atk", "hp", "def", "crate %", "cdmg %", "vamp %", "atkspd %"];
+    const possibleStats = ["atk", "hp", "def", "critRate %", "critDmg %", "vamp %", "speed %"];
     const statsCount = Math.min(Object.keys(rarityChances).indexOf(rarity) + 1, 4);
 
     while (Object.keys(statsMap).length < statsCount) {
@@ -148,7 +98,6 @@ function generateVixenStats(rarity) {
 
     return stats;
 }
-
 
 const addVixen = (name, category = "None", level = "1", tier = "1", avatar = "assets/img/vixen.jpg") => {
     if (!name) {
@@ -177,7 +126,7 @@ const addVixen = (name, category = "None", level = "1", tier = "1", avatar = "as
 
 
 function populateAllVixens() {
-    console.log('Populating all vixens:', player.vixens);
+    // console.log('Populating all vixens:', player.vixens);
     if (!Array.isArray(player.vixens)) {
       console.error('vixenObject is not defined or not an array.');
       return;
@@ -197,8 +146,6 @@ function populateVixenTemplate(index) {
         return;
     }
 
-    console.log('Populating vixen template:', vixen);
-
     let vixenItem = document.querySelector(".vixen-item.vixen-" + index);
     vixenItem.querySelector('.vixen-name-top').innerHTML = `<span class="vixen-name ${vixen.rarity}">${vixen.name}</span><span class="vixen-lvl grey">Lv. ${vixen.lvl} <sup>${vixen.tier}</sup></span>`;;
     vixenItem.querySelector('.vixen-name-top').classList.add(vixen.rarity);
@@ -215,7 +162,6 @@ function populateVixenTemplate(index) {
         bonusContainer.className = 'vixen-bonus-container';
         vixenItem.appendChild(bonusContainer);
     }
-
 
     vixen.stats.forEach(stat => {
         const statEntry = Object.entries(stat)[0];
@@ -234,16 +180,16 @@ function populateVixenTemplate(index) {
             case 'def':
                 iconClass = 'ra ra-round-shield';
                 break;
-            case 'crate %':
+            case 'critRate %':
                 iconClass = 'ra ra-knife';
                 break;
-            case 'cdmg %':
+            case 'critDmg %':
                 iconClass = 'ra ra-focused-lightning';
                 break;
             case 'vamp %':
                 iconClass = 'ra ra-dripping-blade';
                 break;
-            case 'atkspd %':
+            case 'speed %':
                 iconClass = 'ra ra-player-dodge';
                 break;
             default:
@@ -269,7 +215,7 @@ const showTavern = () => {
     }
     for (let i = 0; i < vixenObject.length; i++) {
         const tavernVixen = vixenObject[i];
-        console.log("Tavern Vixen: ", tavernVixen);
+        // console.log("Tavern Vixen: ", tavernVixen);
         let tavernVixenDiv = document.createElement('div');
         let icon = `<i class="ra ra-player ${tavernVixen.rarity}"></i>`;
         tavernVixenDiv.className = "tavernVixen";
@@ -294,31 +240,8 @@ function showVixens() {
         return;
     } 
     if (player.vixens.length > 0) {
-        console.log('Vixens:', player.vixens);
-        tallyVixenStats();
         populateAllVixens();
     }
-}
-
-const applyVixenStats = () => {
-    player.enlistedStats = {
-        hp: 0,
-        atk: 0,
-        def: 0,
-        atkSpd: 0,
-        vamp: 0,
-        critRate: 0,
-        critDmg: 0
-    };
-    for (let i = 0; i < player.enlisted.length; i++) {
-        const girl = player.enlisted[i];
-        girl.stats.forEach(stat => {
-            for (const key in stat) {
-                player.enlistedStats[key] += stat[key];
-            }
-        });
-    }
-    calculateStats();
 }
 
 const sellAllVixen = (rarity) => {
@@ -354,31 +277,5 @@ const sellAllVixen = (rarity) => {
             playerLoadStats();
             saveData();
         }
-    }
-}
-
-const createVixenPrint = (condition) => {
-    let girl = createVixen();
-    let panel = `
-        <div class="primary-panel" style="padding: 0.5rem; margin-top: 0.5rem;">
-                <h4 class="${girl.rarity}"><b>${girl.icon}${girl.rarity} ${girl.category}</b></h4>
-                <h5 class="${girl.rarity}"><b>Lv.${girl.lvl} Tier ${girl.tier}</b></h5>
-                <ul>
-                ${girl.stats.map(stat => {
-        if (Object.keys(stat)[0] === "critRate" || Object.keys(stat)[0] === "critDmg" || Object.keys(stat)[0] === "atkSpd" || Object.keys(stat)[0] === "vamp") {
-            return `<li>${Object.keys(stat)[0].toString().replace(/([A-Z])/g, ".$1").replace(/crit/g, "c").toUpperCase()}+${stat[Object.keys(stat)[0]].toFixed(2).replace(rx, "$1")}%</li>`;
-        }
-        else {
-            return `<li>${Object.keys(stat)[0].toString().replace(/([A-Z])/g, ".$1").replace(/crit/g, "c").toUpperCase()}+${stat[Object.keys(stat)[0]]}</li>`;
-        }
-    }).join('')}
-            </ul>
-        </div>`;
-    if (condition == "combat") {
-        addCombatLog(`
-        ${enemy.name} dropped <span class="${girl.rarity}">${girl.rarity} ${girl.category}</span>.<br>${panel}`);
-    } else if (condition == "dungeon") {
-        addDungeonLog(`
-        You got <span class="${girl.rarity}">${girl.rarity} ${girl.category}</span>.<br>${panel}`);
     }
 }

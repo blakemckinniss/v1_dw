@@ -120,11 +120,11 @@
                 </p><br>
                 <p>
                   <i class="ra ra-knife"></i>
-                  <span id="player-crate"></span>
+                  <span id="player-critRate"></span>
                 </p>
                 <p>
                   <i class="ra ra-focused-lightning"></i>
-                  <span id="player-cdmg"></span>
+                  <span id="player-critDmg"></span>
                 </p><br>
                 <p>
                   <i class="ra ra-dripping-blade"></i>
@@ -132,7 +132,7 @@
                 </p>
                 <p>
                   <i class="ra ra-player-dodge"></i>
-                  <span id="player-atkspd"></span>
+                  <span id="player-speed"></span>
                 </p><br>
                 <p><i class="ra ra-clover"></i> <span id="player-luck">1</span></p>
                 <p>
@@ -228,7 +228,6 @@
           <p onclick="closeTavern()"><i class="fa fa-xmark"></i></p>
         </div>
         <div class="content-head">
-          <button id="sell-all-vixen">Sell</button>
           <select id="sell-rarity-vixen" title="Select Rarity">
             <option class="Common" value="Common">Common</option>
             <option class="Uncommon" value="Uncommon">Uncommon</option>
@@ -244,7 +243,6 @@
           <div class="box">
             <div class="box-head">
               <h4>Vixens</h4>
-              <p id="unenlist-all"><i class="fa fa-circle-xmark"></i></p>
             </div>
             <div id="playerVixen"></div>
           </div>
@@ -268,6 +266,7 @@
           <div class="battle-bar empty-bar bb-xb">
             <div class="battle-bar current bb-xb" id="player-exp-bar">exp</div>
           </div>
+          <div id="player-dmg-container""></div>
           <img id="player-sprite" alt="Skeleton Swordsmaster" width="" src="./assets/img/vixen.jpg" class="">
         </div>
 
@@ -283,7 +282,7 @@
               <span class="battleTextBar" id="enemyHpText" style="position: absolute;"></span>
             </div>
           </div>
-          <div id="dmg-container"></div>
+          <div id="enemy-dmg-container"></div>
           <img id="enemy-sprite" alt="" width="">
         </div>
 
@@ -359,11 +358,11 @@
   <script src="./assets/js/player.js"></script>
   <script src="./assets/js/equipment.js"></script>
   <script src="./assets/js/tavern.js"></script>
+  <script src="./assets/js/enemy.js"></script>
   <script src="./assets/js/combat.js"></script>
   <script src="./assets/js/vixens.js"></script>
   <script src="./assets/js/events.js"></script>
   <script src="./assets/js/dungeon.js"></script>
-  <script src="./assets/js/enemy.js"></script>
   <script src="./assets/js/main.js"></script>
   <script src="./assets/js/materials.js"></script>
   </div>

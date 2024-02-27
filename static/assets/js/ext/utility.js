@@ -358,7 +358,6 @@ function normalizePlayer () {
   player.vixens = vixenObject
   if (!player.tavern) player.tavern = BASE_PLAYER.tavern
   if (!player.tavern.vixen) player.tavern.vixen = BASE_PLAYER.tavern.vixen
-  if (!player.enlisted) player.enlisted = []
   if (!player.buffs) player.buffs = []
   if (!player.banes) player.banes = []
   if (!player.maxWeight) player.maxWeight = 500
@@ -439,7 +438,7 @@ const allocationPopup = () => {
     hp: 5,
     atk: 5,
     def: 5,
-    atkSpd: 5
+    speed: 5
   }
   let stats = {}
   const updateStats = () => {
@@ -532,7 +531,7 @@ const allocationPopup = () => {
     .addEventListener('click', function (event) {
       if (
         event.target.id &&
-        event.target.id.match(/(hp|atk|def|atkSpd)(Add|Min)/)
+        event.target.id.match(/(hp|atk|def|speed)(Add|Min)/)
       ) {
         handleStatButtons(event.target.id)
       }
@@ -568,19 +567,11 @@ const playSoundEffect = type => {
     open: () => sfxOpen.play(),
     deny: () => sfxDeny.play(),
     equip: () => sfxEquip.play(),
-    enlist: () => sfxEquip.play(),
     unequip: () => sfxUnequip.play(),
-    unenlist: () => sfxUnequip.play(),
     sell: () => sfxSell.play(),
     decline: () => sfxDecline.play()
   }
   if (soundEffects[type]) soundEffects[type]()
-}
-
-function battleRoutine () {
-  validateHP()
-  playerLoadStats()
-  enemyLoadStats()
 }
 
 function triggerAnimation (element, animationClass, duration) {

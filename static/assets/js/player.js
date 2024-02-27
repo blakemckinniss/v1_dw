@@ -25,86 +25,121 @@ const playerLvlUp = () => {
     player.bonusStats.hp += 4;
     player.bonusStats.atk += 2;
     player.bonusStats.def += 2;
-    player.bonusStats.atkSpd += 0.15;
+    player.bonusStats.speed += 0.15;
     player.bonusStats.critRate += 0.1;
     player.bonusStats.critDmg += 0.25;
 }
 
 const playerLoadStats = () => {
+
+    player.equippedStats = player.equipped.reduce((acc, item) => {
+        item.stats.forEach(stat => {
+            Object.keys(stat).forEach(key => {
+                acc[key] = (acc[key] || 0) + stat[key];
+            });
+        });
+        return acc;
+    }, { hp: 0, atk: 0, def: 0, speed: 0, vamp: 0, critRate: 0, critDmg: 0 });
+
+    const calculateTotalStat = (base, bonus, equipped, isPercent = false) => {
+        const baseValue = player.baseStats[base] || 0;
+        const bonusValue = player.bonusStats[bonus] || 0;
+        const equippedValue = player.equippedStats[equipped] || 0;
+        if (isPercent) {
+            // For percent-based stats, apply the bonus as a multiplier to the base, then add the equipped percentage
+            return baseValue * (1 + bonusValue / 100) + (equippedValue / 100 * baseValue);
+        } else {
+            // For flat stats, apply the bonus as a multiplier to both base and equipped values
+            return Math.round(baseValue * (1 + bonusValue / 100) + equippedValue);
+        }
+    };
+
+    // Update player stats
+    player.stats.hp = calculateTotalStat('hp', 'hp', 'hp');
+    player.stats.atk = calculateTotalStat('atk', 'atk', 'atk');
+    player.stats.def = calculateTotalStat('def', 'def', 'def');
+    player.stats.speed = Math.min(2.5, calculateTotalStat('speed', 'speed', 'speed', true));
+    player.stats.vamp = calculateTotalStat('vamp', 'vamp', 'vamp', true);
+    player.stats.critRate = calculateTotalStat('critRate', 'critRate', 'critRate', true);
+    player.stats.critDmg = calculateTotalStat('critDmg', 'critDmg', 'critDmg', true);
+
+    // Ensure HP does not exceed max and calculate percentages
+    player.stats.hp = Math.min(player.stats.hp, player.stats.hpMax);
+    player.stats.hpPercent = ((player.stats.hp / player.stats.hpMax) * 100).toFixed(2);
+    player.exp.expPercent = ((player.exp.expCurrLvl / player.exp.expMaxLvl) * 100).toFixed(2);
+
+    console.log('Player stats:', player.stats);
+
+    // Update UI elements
+    combatSystem.updateCombatUI();
+    updateUIElements();
+};
+
+// Function to update UI elements related to combat
+
+
+const formatBonusStat = (bonus) => {
+    let formattedBonus = bonus.toFixed(1).replace(rx, "$1");
+    let colorClass = 'neutral';
+    if (bonus > 0) {
+        formattedBonus = `+${formattedBonus}`;
+        colorClass = 'positive';
+    } else if (bonus < 0) {
+        colorClass = 'negative';
+    }
+    return `<span class="${colorClass}">${formattedBonus}%</span>`;
+};
+
+// Function to update general player stats and UI elements
+function updateUIElements() {
     showVixens();
     showEquipment();
     showInventory();
     showTavern();
+    showMaterials();
 
-    resetPlayerBonusStats();
-    applyEquipmentStats();
+    updateStrengthElement();
+    updatePlayerInfo();
+    updateStatsWithBonuses();
+    bonusStatsElement.style.display = 'none';
+}
 
-    updateMaterialsDisplay();
-
-    updatePlayerStrengthDisplay();
-    calculateStats();
-
-    playerEnergyElement.textContent = player.energy;
-    playerLuckElement.textContent = player.luck;
-
-    if (player.stats.hp > player.stats.hpMax) {
-        player.stats.hp = player.stats.hpMax;
-    }
-    player.stats.hpPercent = Number((player.stats.hp / player.stats.hpMax) * 100).toFixed(2).replace(rx, "$1");
-    player.exp.expPercent = Number((player.exp.expCurrLvl / player.exp.expMaxLvl) * 100).toFixed(2).replace(rx, "$1");
-
-    if (player.inCombat) {
-        playerCombatHpElement.innerHTML = `<span class="battleTextBar" id="playerHpText" style="position: absolute;">&nbsp${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}(${player.stats.hpPercent}%)</span>`;
-        playerCombatHpElement.style.width = `${player.stats.hpPercent}%`;
-        playerHpDamageElement.style.width = `${player.stats.hpPercent}%`;
-        playerExpElement.style.width = `${player.exp.expPercent}%`;
-        playerInfoElement.innerHTML = `${player.name} Lv.${player.lvl} (${player.exp.expPercent}%)`;
-    }
-
-    const combineStatsWithBonus = (base, bonus) => {
-        const total = base + (base * (bonus / 100));
-        const formattedBonus = formatBonusStat(bonus);
-        return `${nFormatter(parseInt(total))} <sup>${formattedBonus}</sup>`;
-    };
-    const combineStatsWithBonusPercent = (base, bonus) => {
-        const total = base + (base * (bonus / 100));
-        const formattedBonus = formatBonusStat(bonus);
-        return `${nFormatter(total)}% <sup>${formattedBonus}</sup>`;
-    };
-    const formatBonusStat = (bonus) => {
-        let formattedBonus = bonus.toFixed(1).replace(rx, "$1");
-        let colorClass = 'neutral';
-        if (bonus > 0) {
-            formattedBonus = `+${formattedBonus}`;
-            colorClass = 'positive';
-        } else if (bonus < 0) {
-            colorClass = 'negative';
-        }
-        return `<span class="${colorClass}">${formattedBonus}%</span>`;
-    };
-
-    playerNameElement.innerHTML = `LVL: ${player.lvl} (${parseFloat(player.exp.expPercent).toFixed(1)}%)`;
-    playerGoldElement.innerHTML = `<i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(player.gold)}`;
-    playerHpElement.innerHTML = `${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}`;
-    playerAtkElement.innerHTML = combineStatsWithBonus(player.stats.atk, player.bonusStats.atk);
-    playerDefElement.innerHTML = combineStatsWithBonus(player.stats.def, player.bonusStats.def);
-    playerAtkSpdElement.innerHTML = combineStatsWithBonusPercent(player.stats.atkSpd, player.bonusStats.atkSpd);
-    playerVampElement.innerHTML = combineStatsWithBonusPercent(player.stats.vamp, player.bonusStats.vamp);
-    playerCrateElement.innerHTML = combineStatsWithBonusPercent(player.stats.critRate, player.bonusStats.critRate);
-    playerCdmgElement.innerHTML = combineStatsWithBonusPercent(player.stats.critDmg, player.bonusStats.critDmg);
-    document.querySelector("#bonus-stats").style.display = 'none';
-    console.log('Player stats loaded');
-};
-
-function updatePlayerStrengthDisplay() {
+function updateStrengthElement() {
     const strengthElement = document.querySelector("#player-strength");
     const currentWeight = player.currentWeight();
     const maxWeight = player.maxWeight;
     strengthElement.textContent = `${currentWeight} / ${maxWeight}`;
 }
 
-const resetPlayerBonusStats = () => {
-    player.bonusStats = vixenObjectStats;
+function updatePlayerInfo() {
+    playerNameElement.innerHTML = `LVL: ${player.lvl} (${parseFloat(player.exp.expPercent).toFixed(1)}%)`;
+    playerGoldElement.innerHTML = `<i class="ra ra-gem" style="color: #FFD700;"></i>${nFormatter(player.gold)}`;
+    playerHpElement.innerHTML = `${nFormatter(player.stats.hp)} / ${nFormatter(player.stats.hpMax)}`;
+}
+
+function updateStatsWithBonuses() {
+    const statElements = {
+        atk: { base: player.stats.atk, bonus: player.bonusStats.atk },
+        def: { base: player.stats.def, bonus: player.bonusStats.def },
+        speed: { base: player.stats.speed, bonus: player.bonusStats.speed, isPercent: true },
+        vamp: { base: player.stats.vamp, bonus: player.bonusStats.vamp, isPercent: true },
+        critRate: { base: player.stats.critRate, bonus: player.bonusStats.critRate, isPercent: true },
+        critDmg: { base: player.stats.critDmg, bonus: player.bonusStats.critDmg, isPercent: true }
+    };
+
+    Object.entries(statElements).forEach(([stat, { base, bonus, isPercent }]) => {
+        const element = document.querySelector(`#player-${stat}`);
+        // console.log("stat: ", stat, "base: ", base, "bonus: ", bonus, "isPercent: ", isPercent);
+        element.innerHTML = combineStatsWithBonus(base, bonus, isPercent);
+    });
+}
+
+const combineStatsWithBonus = (base, bonus, isPercent = false) => {
+    // console.log("base: ", base, "bonus: ", bonus, "isPercent: ", isPercent);
+    const total = base + (base * (bonus / 100));
+    const formattedBonus = formatBonusStat(bonus);
+    const formattedTotal = isPercent ? `${nFormatter(total)}%` : nFormatter(parseInt(total));
+    return `${formattedTotal} <sup>${formattedBonus}</sup>`;
 };
 
 const openInventory = () => {
@@ -176,44 +211,6 @@ const openTavern = () => {
     openTav.style.display = "flex";
     dimDungeonElement.style.filter = "brightness(50%)";
 
-    sellAllTavernElement.onclick = function () {
-        openTav.style.filter = "brightness(50%)";
-        let rarity = sellRarityElement.value;
-        defaultModalElement.style.display = "flex";
-        if (rarity == "All") {
-            defaultModalElement.innerHTML = `
-            <div class="content">
-                <p>Sell all of your Vixens?</p>
-                <div class="button-container">
-                    <button id="sell-enlist-confirm">Sell All</button>
-                    <button id="sell-enlist-cancel">Cancel</button>
-                </div>
-            </div>`;
-        } else {
-            defaultModalElement.innerHTML = `
-            <div class="content">
-                <p>Sell all <span class="${rarity}">${rarity}</span> Vixen?</p>
-                <div class="button-container">
-                    <button id="sell-enlist-confirm">Sell All</button>
-                    <button id="sell-enlist-cancel">Cancel</button>
-                </div>
-            </div>`;
-        }
-
-        let confirm = document.querySelector('#sell-enlist-confirm');
-        let cancel = document.querySelector('#sell-enlist-cancel');
-        confirm.onclick = function () {
-            sellAllVixen(rarity);
-            defaultModalElement.style.display = "none";
-            defaultModalElement.innerHTML = "";
-            openInv.style.filter = "brightness(100%)";
-        };
-        cancel.onclick = function () {
-            defaultModalElement.style.display = "none";
-            defaultModalElement.innerHTML = "";
-            openInv.style.filter = "brightness(100%)";
-        };
-    };
     sellRarityElement.onchange = function () {
         let rarity = sellRarityElement.value;
         sellRarityElement.className = rarity;
@@ -291,7 +288,7 @@ function bindRerollButton(remainingRerolls, statPercentages) {
 }
 
 function performStatReroll(remainingRerolls, statPercentages) {
-    const stats = shuffleArray(["hp", "atk", "def", "atkSpd", "vamp", "critRate", "critDmg"]).slice(0, 3);
+    const stats = shuffleArray(["hp", "atk", "def", "speed", "vamp", "critRate", "critDmg"]).slice(0, 3);
     updateLevelUpInterface(remainingRerolls, statPercentages);
     removePreviousStatButtons();
     stats.forEach((stat, index) => {

@@ -2,10 +2,10 @@ let devMode = false;
 const PLAYERNAME = "Jinx";
 const MAX_LEVEL = 100;
 const TIER_CAP = 10;
-const MAX_STAT_MULTIPLIERS = { hp: 40, atkDef: 16, cdAtkSpd: 3, crVamp: 2 };
-const STAT_CAPS = { atkSpd: 15, vamp: 8, critRate: 10 };
+const MAX_STAT_MULTIPLIERS = { hp: 40, atkDef: 16, cdSpeed: 3, crVamp: 2 };
+const STAT_CAPS = { speed: 15, vamp: 8, critRate: 10 };
 const GOLD_WRAPPER = '<i class="ra ra-gem" style="color: #FFD700;"></i><span class="Common">${1}</span>'
-const statNamesRequiringPercentage = new Set(["critRate", "critDmg", "atkSpd", "vamp"]);
+const statNamesRequiringPercentage = new Set(["critRate", "critDmg", "speed", "vamp"]);
 const rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
 const NULL_EQUIPMENT = {
   category: null,
@@ -38,7 +38,7 @@ const vixenObjectStats = {
     "hp": 0,
     "atk": 0,
     "def": 0,
-    "atkSpd": 0,
+    "speed": 0,
     "vamp": 0,
     "critRate": 0,
     "critDmg": 0
@@ -55,7 +55,7 @@ const percentages = {
   "hp": 10,
   "atk": 8,
   "def": 8,
-  "atkSpd": 3,
+  "speed": 3,
   "vamp": 0.5,
   "critRate": 1,
   "critDmg": 6
@@ -65,7 +65,7 @@ const BASE_STATS = {
   atk: 1000,
   def: 50,
   pen: 0,
-  atkSpd: 0.6,
+  speed: 0.6,
   vamp: 0,
   critRate: 0,
   critDmg: 50
@@ -87,7 +87,7 @@ BASE_PLAYER = {
     atk: 1000,
     def: 50,
     pen: 0,
-    atkSpd: 0.6,
+    speed: 0.6,
     vamp: 0,
     critRate: 0,
     critDmg: 50
@@ -97,7 +97,7 @@ BASE_PLAYER = {
     atk: 0,
     def: 0,
     pen: 0,
-    atkSpd: 0,
+    speed: 0,
     vamp: 0,
     critRate: 0,
     critDmg: 0,
@@ -158,9 +158,9 @@ const statsMapping = {
   }
 };
 const statsTypes = {
-  "physicalStats": ["atk", "atkSpd", "vamp", "critRate", "critDmg"],
+  "physicalStats": ["atk", "speed", "vamp", "critRate", "critDmg"],
   "damageyStats": ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
-  "speedyStats": ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
+  "speedyStats": ["speed", "speed", "atk", "vamp", "critRate", "critRate", "critDmg"],
   "defenseStats": ["hp", "hp", "def", "def", "atk"],
   "dmgDefStats": ["hp", "def", "atk", "atk", "critRate", "critDmg"]
 };
@@ -169,10 +169,10 @@ const statsConfig = {
   Damage: {
     Axe: ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
     Scythe: ["atk", "atk", "vamp", "critRate", "critDmg", "critDmg"],
-    Dagger: ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
-    Flail: ["atkSpd", "atkSpd", "atk", "vamp", "critRate", "critRate", "critDmg"],
+    Dagger: ["speed", "speed", "atk", "vamp", "critRate", "critRate", "critDmg"],
+    Flail: ["speed", "speed", "atk", "vamp", "critRate", "critRate", "critDmg"],
     Hammer: ["hp", "def", "atk", "atk", "critRate", "critDmg"],
-    default: ["atk", "atkSpd", "vamp", "critRate", "critDmg"]
+    default: ["atk", "speed", "vamp", "critRate", "critDmg"]
   },
   Defense: ["hp", "hp", "def", "def", "atk"]
 };
@@ -230,10 +230,10 @@ const iconMap = {
   hp: "ra ra-hearts",
   atk: "ra ra-sword",
   def: "ra ra-round-shield",
-  atkspd: "ra ra-player-dodge",
+  speed: "ra ra-player-dodge",
   vamp: "ra ra-dripping-blade",
-  crate: "ra ra-knife",
-  cdmg: "ra ra-focused-lightning",
+  critRate: "ra ra-knife",
+  critDmg: "ra ra-focused-lightning",
   strength: "ra ra-muscle-up",
   energy: "ra ra-lightning-bolt",
   luck: "ra ra-clover"
@@ -325,8 +325,6 @@ let dungeon = {
   action: 0,
 };
 
-
-
 const confirmQuitHtml = `
 <div class="content">
   <div class="content-head">
@@ -353,7 +351,7 @@ const statConfig = {
   hp: { base: 50, multiplier: (value) => value * 50 },
   atk: { base: 10, multiplier: (value) => value * 10 },
   def: { base: 10, multiplier: (value) => value * 10 },
-  atkSpd: { base: 0.4, multiplier: (value) => 0.4 + (0.02 * value) }
+  speed: { base: 0.4, multiplier: (value) => 0.4 + (0.02 * value) }
 };
 
 const stackLimitMessage = "Cannot acquire more materials due to max stack limit.";
