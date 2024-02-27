@@ -29,6 +29,17 @@ function raiseHp (percentage) {
   addDungeonLog(`HP increased by ${percentage * 100}%`)
 }
 
+function verifyObjectKeys(obj, requiredKeys) {
+  const objKeysSet = new Set(Object.keys(obj));
+  for (let key of requiredKeys) {
+    if (!objKeysSet.has(key)) {
+      console.error(`Missing key: ${key}`);
+      return false; 
+  }
+  return true;
+  }
+}
+
 /**
  * Toggles the visibility of the choice panel and dynamically creates choice buttons.
  * @param {number} numberOfButtons - Number of choice buttons to create.
@@ -742,3 +753,14 @@ function calculatePercentage (part, whole) {
   let percentage = (part / whole) * 100
   return percentage.toFixed(2) // This will format the percentage to two decimal places
 }
+
+
+function rpgGenIcon(iconName, extraHTML = '') {
+  const iconNameFormatted = iconName.toLowerCase().replace(/\s+/g, '-');
+  const iconClass = `ra ra-${iconNameFormatted}`;
+  const iconHTML = `<i class="${iconClass}"></i>`;
+  return iconHTML + extraHTML;
+}
+
+// const html1 = rpgGenIcon("bowie knife", "<p>This is the extra HTML</p>");
+// const html2 = rpgGenIcon("magic wand", "<p>Extra HTML content here</p>");

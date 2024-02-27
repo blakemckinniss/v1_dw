@@ -41,8 +41,12 @@ const vixenObjectStats = {
     "speed": 0,
     "vamp": 0,
     "critRate": 0,
-    "critDmg": 0
+    "critDmg": 0,
+    "luck": 0
 };
+
+const requiredVixenKeys = ['hp', 'atk', 'def', 'speed', 'vamp', 'critRate', 'critDmg', 'luck'];
+
 const rarityThresholds = {
   "Common": 3,
   "Uncommon": 4,
@@ -372,3 +376,112 @@ const materialDisplayTemplate = (material) => `
 const materialIconTemplate = (materialData) => `/assets/materials/${materialData.icon || defaultMaterialIcon}.png`;
 const materialRemovedTemplate = (materialName) => `Removed all of ${materialName} from inventory.`;
 const promptMaterialTemplate = (text) => `Enter quantity to ${text.toLowerCase()}:`;
+
+
+const weaponSuffixes = {
+  "of the Bear": { "hp": 20 },
+  "of the Fox": { "atk": 5 },
+  "of the Vampire": { "vamp": 2 },
+  "of the Assassin": { "critRate": 5 },
+  "of the Warrior": { "atk": 10 },
+  "of the Guardian": { "def": 10 },
+  "of the Thief": { "speed": 0.5 },
+  "of the Berserker": { "critDmg": 50 },
+  "of the Swift": { "speed": 0.5 },
+  "of the Agile": { "speed": 0.3 }
+}
+
+const weaponPrefixes = {
+  "Rusty": { "atk": 2, "def": -2 },
+  "Sharp": { "atk": 5 },
+  "Strong": { "atk": 10 },
+  "Heavy": { "def": 5 },
+  "Light": { "speed": 0.5 },
+  "Dull": { "atk": -5 },
+  "Broken": { "atk": -10, "def": -5 },
+  "Blessed": { "atk": 10, "def": 10 },
+  "Cursed": { "atk": -10, "def": -10 }
+}
+
+const weaponAbilities = {
+  "Sword": {
+    "effect": "Bleed",
+    "flavorText": "Causes enemies to bleed over time."
+  },
+  "Dagger": {
+    "effect": "Backstab",
+    "flavorText": "Increased damage from behind."
+  },
+  "Hammer": { "effect": "Stun", "flavorText": "Chance to stun on hit." },
+  "Flail": { "effect": "Disarm", "flavorText": "Chance to disarm enemy." },
+  "Scythe": { "effect": "Reap", "flavorText": "Chance to deal massive damage." },
+  "Plate": { "effect": "Taunt", "flavorText": "Draws enemy attention." },
+  "Chain": { "effect": "Snare", "flavorText": "Slows enemy movement." },
+  "Leather": { "effect": "Evasion", "flavorText": "Chance to dodge attacks." },
+  "Tower": {
+    "effect": "Block",
+    "flavorText": "Chance to block incoming attacks."
+  },
+  "Kite": {
+    "effect": "Deflect",
+    "flavorText": "Chance to deflect incoming attacks."
+  },
+  "Buckler": {
+    "effect": "Parry",
+    "flavorText": "Chance to parry incoming attacks."
+  },
+  "Great Helm": {
+    "effect": "Resilience",
+    "flavorText": "Chance to resist incoming attacks."
+  },
+  "itemSets": {
+    "Warrior's Might": {
+      "items": ["Sword", "Plate", "Great Helm"],
+      "setBonus": {
+        "atk": 10,
+        "def": 10,
+        "flavorText": "For those who lead the charge."
+      }
+    },
+    "Rogue's Cunning": {
+      "items": ["Dagger", "Leather", "Buckler"],
+      "setBonus": {
+        "speed": 0.5,
+        "critRate": 5,
+        "flavorText": "For those who strike from the shadows."
+      }
+    },
+    "Berserker's Rage": {
+      "items": ["Axe", "Chain", "Kite"],
+      "setBonus": {
+        "atk": 15,
+        "critDmg": 50,
+        "flavorText": "For those who revel in the chaos."
+      }
+    },
+    "Guardian's Resolve": {
+      "items": ["Hammer", "Tower", "Plate"],
+      "setBonus": {
+        "def": 20,
+        "hp": 50,
+        "flavorText": "For those who stand their ground."
+      }
+    },
+    "Reaper's Harvest": {
+      "items": ["Scythe", "Leather", "Buckler"],
+      "setBonus": {
+        "vamp": 10,
+        "critRate": 5,
+        "flavorText": "For those who thrive on the edge."
+      }
+    },
+    "Knight's Valor": {
+      "items": ["Sword", "Tower", "Plate"],
+      "setBonus": {
+        "def": 15,
+        "hp": 100,
+        "flavorText": "For those who protect the realm."
+      }
+    }
+  }
+}

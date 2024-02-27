@@ -42,7 +42,7 @@ const playerLoadStats = () => {
     }, { hp: 0, atk: 0, def: 0, speed: 0, vamp: 0, critRate: 0, critDmg: 0 });
 
     const calculateTotalStat = (base, bonus, equipped, isPercent = false) => {
-        const baseValue = player.baseStats[base] || 0;
+        const baseValue = player.vixens[0].stats[base] || 0;
         const bonusValue = player.bonusStats[bonus] || 0;
         const equippedValue = player.equippedStats[equipped] || 0;
         if (isPercent) {
@@ -56,12 +56,15 @@ const playerLoadStats = () => {
 
     // Update player stats
     player.stats.hp = calculateTotalStat('hp', 'hp', 'hp');
+    player.stats.maxHp = calculateTotalStat('hp', 'hp', 'hp');
     player.stats.atk = calculateTotalStat('atk', 'atk', 'atk');
     player.stats.def = calculateTotalStat('def', 'def', 'def');
     player.stats.speed = Math.min(2.5, calculateTotalStat('speed', 'speed', 'speed', true));
     player.stats.vamp = calculateTotalStat('vamp', 'vamp', 'vamp', true);
     player.stats.critRate = calculateTotalStat('critRate', 'critRate', 'critRate', true);
     player.stats.critDmg = calculateTotalStat('critDmg', 'critDmg', 'critDmg', true);
+
+    console.log("Player stats!!!!!!!!!!!!!!!!!!!: ", player.vixens);
 
     // Ensure HP does not exceed max and calculate percentages
     player.stats.hp = Math.min(player.stats.hp, player.stats.hpMax);
