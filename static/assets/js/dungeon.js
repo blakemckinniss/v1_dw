@@ -1,99 +1,112 @@
-dungeonActivityElement.addEventListener('click', toggleDungeonActivity);
+class DungeonGenerator {
+    constructor(playerLuck) {
+        this.playerLuck = playerLuck; // Assuming player's luck is a value between 1 and 100
 
-function toggleDungeonActivity() {
-    if (player.inCombat) { return; }
-    const isExploring = isCurrentlyExploring();
-    logActivityState(isExploring);
-    toggleActivityIcon(isExploring);
-    resetDungeonLog();
-    updateDungeonActionSpinner(isExploring);
-}
+        this.requiredKeys = [
+            { key: "Wooden Key", tier: 1 },
+            { key: "Iron Key", tier: 2 },
+            { key: "Silver Key", tier: 3 },
+            { key: "Gold Key", tier: 4 },
+            { key: "Copper Key", tier: 5 }
+        ];
 
-function isCurrentlyExploring() {
-    return dungeonActivityElement.innerHTML.includes("ra-monster-skull");
-}
-
-function logActivityState(isExploring) {
-    console.log(isExploring ? "starting to explore" : "paused");
-}
-
-function toggleActivityIcon(isExploring) {
-    const icon = isExploring ? "ra-desert-skull" : "ra-monster-skull";
-    dungeonActivityElement.innerHTML = `<i class="ra ${icon}"></i>`;
-    pauseSwitch(isExploring, false, !isExploring);
-}
-
-function resetDungeonLog() {
-    dungeon.backlog.length = 0;
-    updateDungeonLog();
-}
-
-function updateDungeonActionSpinner(isExploring) {
-    const spinnerClass = isExploring ? "spinner-explore" : "spinner-rest";
-    dungeonAction.innerHTML = `<div class="${spinnerClass}"><div class="spinner1"></div>`;
-}
-
-const initialDungeonLoad = () => {
-    if (localStorage.getItem("dungeonData") !== null) {
-        dungeon = JSON.parse(localStorage.getItem("dungeonData"));
-        dungeon.status = {
-            exploring: false,
-            paused: true,
-            event: false,
+        this.rarityChances = {
+            "Common": 0.7,
+            "Uncommon": 0.2,
+            "Rare": 0.04,
+            "Epic": 0.03,
+            "Legendary": 0.02,
+            "Heirloom": 0.01
         };
-        resetDungeonLog();
     }
-    loadDungeonProgress();
-    dungeonTimeElement.innerHTML = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
-    dungeonAction.innerHTML = '<div class="spinner-rest"><div class="spinner1"></div>';
-    dungeonActivityElement.innerHTML = `<i class="ra ra-monster-skull"></i>`;
-    dungeonTimeElement.innerHTML = "00:00:00";
-    dungeonTimer = setInterval(dungeonEvent, 5000);
-    playTimer = setInterval(dungeonCounter, 1000);
-    setUpRegenTimers();
-    logContainerElement.innerHTML = '';
-}
 
-const updateDungeonUI = (isPaused) => {
-    dungeonAction.innerHTML = isPaused ? '<div class="spinner-rest"><div class="spinner1"></div>' : '<div class="spinner-explore"><div class="spinner1"></div>';
-    dungeonActivityElement.innerHTML = isPaused ? "Explore" : "Pause";
-};
+    generateDungeonByTier(tier) {
+        let key = this.requiredKeys.find(k => k.tier === tier)?.key || "Wooden Key";
+        let rarity = this.determineRarity();
+        let { timeLimit, density, events } = this.calculateProgress(tier, rarity);
+        let rewardBonus = this.calculateRewardBonus(tier, rarity);
 
-function pauseSwitch(isExploring = false, isEvent = false, isPaused = true) {
-    dungeon.status.exploring = isExploring;
-    dungeon.status.event = isEvent;
-    dungeon.status.paused = isPaused;
-    console.log("Exploring: ", dungeon.status.exploring, " Event: ", dungeon.status.event, " Paused: ", dungeon.status.paused);
-};
+        let dungeon = {
+            tier: tier,
+            requiredKey: key,
+            rarity: rarity,
+            progress: {
+                timeLimit: timeLimit,
+                density: density,
+                events: events
+            },
+            settings: {
+                enemyBaseLvl: tier,
+                enemyScaling: 1.1 + (tier - 1) * 0.05, // Adjust as needed
+                rewardBonus: rewardBonus,
+                rewardScaling: 1.1 + (tier - 1) * 0.05 // Adjust as needed
+            },
+            events: this.populateEvents(events)
+        };
 
-const dungeonCounter = () => {
-    player.playtime++;
-    dungeon.statistics.runtime++;
-    dungeonTime.innerHTML = new Date(dungeon.statistics.runtime * 1000).toISOString().slice(11, 19);
-    saveData();
-}
-const loadDungeonProgress = () => {
-    if (dungeon.progress.room > dungeon.progress.roomLimit) {
-        dungeon.progress.room = 1;
-        dungeon.progress.floor++;
+        return dungeon;
     }
-    floorCountElement.innerHTML = `Floor ${dungeon.progress.floor}`;
-    roomCountElement.innerHTML = `Room ${dungeon.progress.room}`;
-}
 
-function getBonusIcon(stat) {
-    return iconMap[stat] || "ra ra-question";
-}
+    determineRarity() {
+        let roll = Math.random();
+        let cumulative = 0;
+        for (let rarity in this.rarityChances) {
+            cumulative += this.rarityChances[rarity];
+            if (roll < cumulative) {
+                return rarity;
+            }
+        }
+        return "Common"; // Fallback
+    }
 
-const fleeBattle = () => {
-    let eventRoll = randomizeNum(1, 2);
-    if (eventRoll == 1) {
-        addDungeonLog(`You managed to flee.`);
-        player.inCombat = false;
-    } else {
-        addDungeonLog(`You failed to escape!`);
-        combatSystem.startCombat();
-        addCombatLog(`You encountered ${enemy.name}.`);
-        addCombatLog(`You failed to escape!`);
+    calculateProgress(tier, rarity) {
+        // Adjust these base values as per your game design
+        let baseTimeLimit = 5 + this.playerLuck / 20; // Luck increases time limit
+        let baseDensity = 10 + this.playerLuck / 10; // Luck increases density
+        let baseEvents = 10 + Math.floor(this.playerLuck / 10); // Luck increases events
+        let rarityBoost = Object.keys(this.rarityChances).indexOf(rarity) + 1;
+
+        let timeLimit = baseTimeLimit + tier + rarityBoost;
+        let density = baseDensity + tier * 2 + rarityBoost * 2;
+        let events = baseEvents + tier + rarityBoost;
+        return { timeLimit, density, events };
+    }
+
+    calculateRewardBonus(tier, rarity) {
+        // Base reward bonus adjusted by tier, rarity, and player luck
+        let baseRewardBonus = 1 + tier * 0.1 + this.playerLuck / 100;
+        return baseRewardBonus;
+    }
+
+    populateEvents(maxEvents) {
+        let positiveEvents = ["good", "very good", "extremely good"];
+        let negativeEvents = ["bad", "very bad", "extremely bad"];
+        let neutralEvents = ["neutral"];
+        let events = [];
+
+        for (let i = 0; i < maxEvents; i++) {
+            let luckFactor = this.playerLuck / 100; // Convert luck to a 0-1 scale
+            let eventTypeRoll = Math.random();
+            let eventType;
+
+            // Adjust these thresholds based on how much you want luck to influence event positivity
+            if (eventTypeRoll < 0.5 * luckFactor) {
+                eventType = positiveEvents[Math.floor(Math.random() * positiveEvents.length)];
+            } else if (eventTypeRoll < 0.25 + 0.5 * luckFactor) {
+                eventType = neutralEvents[Math.floor(Math.random() * neutralEvents.length)];
+            } else {
+                eventType = negativeEvents[Math.floor(Math.random() * negativeEvents.length)];
+            }
+
+            events.push({ type: eventType });
+        }
+        return events;
     }
 }
+
+// Example usage
+const playerLuck = 75; // Assume the player's luck is 75
+const dungeonGenerator = new DungeonGenerator(playerLuck);
+let specificTierDungeon = dungeonGenerator.generateDungeonByTier(3); // Generates a dungeon for tier 3 with luck taken into account
+
+console.log(specificTierDungeon);

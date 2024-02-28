@@ -1,69 +1,57 @@
-let player = JSON.parse(localStorage.getItem('playerData'))
+// Assuming player.js exports a player object and relevant functions
+import { player, updatePlayerStats, updateInventory } from './player.js';
+import { renderPlayer, renderInventory } from './render.js'; // Hypothetical rendering functions
+import { handleCombat } from './combat.js';
+import { processEvents } from './events.js';
 
-const saveData = () => {
-  const playerData = JSON.stringify(player)
-  const dungeonData = JSON.stringify(dungeon)
-  // const enemyData = JSON.stringify(enemy);
-  const volumeData = JSON.stringify(volume)
-  localStorage.setItem('playerData', playerData)
-  localStorage.setItem('dungeonData', dungeonData)
-  // localStorage.setItem("enemyData", enemyData);
-  localStorage.setItem('volumeData', volumeData)
+// Initialize game state
+function initGame() {
+    console.log('Game initializing...');
+    // Initialize player stats, might involve fetching saved state from localStorage or a backend
+    updatePlayerStats();
+    updateInventory();
+    renderGame();
+    console.log('Game initialized!');
 }
 
-let inventoryOpen = false
-let tavernOpen = false
-let materialOpen = false
-let leveled = false
-
-window.addEventListener('load', initializeGame)
-
-function initializeGame () {
-  if (!player) {
-    player = BASE_PLAYER
-  }
-
-  if (
-    !player.vixens ||
-    !verifyObjectKeys(player.vixens[0], requiredVixenKeys)
-  ) {
-    player = BASE_PLAYER
-    player.vixens[0] = new Vixen()
-    saveData()
-    console.log(
-      'Player vixen data was invalid, resetting to default:',
-      player.vixens[0]
-    )
-  }
-  player.stats = player.vixens[0].stats
-
-  normalizePlayer()
-  enterDungeon()
+// Main game loop
+function gameLoop() {
+    requestAnimationFrame(gameLoop);
+    // Update game state
+    updateGameState();
+    // Render updates
+    renderGame();
 }
 
-const enterDungeon = () => {
-  pauseSwitch()
-  player.inCombat = false
-  //   if (player.stats.hp == 0) {
-  //     progressReset()
-  //   }
-  initialDungeonLoad()
-  playerLoadStats()
+// Update game state, integrating player.js functionality
+function updateGameState() {
+    // Example: Update player stats based on ongoing effects, actions, etc.
+    player.stats.hp -= 1; // Example: Player takes damage over time
+    if (player.stats.hp <= 0) {
+        console.log('Player has been defeated.');
+        // Handle player defeat (restart, load last checkpoint, etc.)
+    }
+    
+    // Process game events, e.g., combat, finding an item
+    processEvents();
 }
 
-close.onclick = function () {
-  defaultModalElement.style.display = 'none'
-  defaultModalElement.innerHTML = ''
+// Render game state
+function renderGame() {
+    // Rendering player status
+    renderPlayer(player);
+
+    // Rendering player inventory
+    renderInventory(player.inventory);
 }
 
-const objectValidation = () => {
-  if (player.skills == undefined) {
-    player.skills = []
-  }
-  if (player.tempStats == undefined) {
-    player.tempStats = {}
-    player.tempStats.atk = 0
-    player.tempStats.speed = 0
-  }
-  saveData()
-}
+// Example event handling (simplified)
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'a') { // Example keypress
+        handleCombat();
+    }
+});
+
+// Start the game
+initGame();
+gameLoop();

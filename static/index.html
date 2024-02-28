@@ -112,35 +112,36 @@
             </div>
             <div class="stat-panel">
               <div class="box boxStat">
-                <p><i class="ra ra-sword"></i> <span id="player-atk"></span></p>
-                <p><i class="ra ra-hearts"></i> <span id="player-hp"></span></p>
-                <p>
-                  <i class="ra ra-round-shield"></i>
-                  <span id="player-def"></span>
-                </p><br>
-                <p>
-                  <i class="ra ra-knife"></i>
-                  <span id="player-critRate"></span>
-                </p>
-                <p>
-                  <i class="ra ra-focused-lightning"></i>
-                  <span id="player-critDmg"></span>
-                </p><br>
-                <p>
-                  <i class="ra ra-dripping-blade"></i>
-                  <span id="player-vamp"></span>
-                </p>
-                <p>
-                  <i class="ra ra-player-dodge"></i>
-                  <span id="player-speed"></span>
-                </p><br>
-                <p><i class="ra ra-clover"></i> <span id="player-luck">1</span></p>
-                <p>
-                  <i class="ra ra-muscle-up"></i>
-                  <span id="player-strength">0</span>
-                </p>
-  
+                  <p><i class="ra ra-sword"></i> <span id="stat-atk"></span>Attack</p>
+                  <p><i class="ra ra-hearts"></i> <span id="stat-hp"></span>HP</p>
+                  <p>
+                      <i class="ra ra-round-shield"></i>
+                      <span id="stat-def"></span>Defense
+                  </p><br>
+                  <p>
+                      <i class="ra ra-knife"></i>
+                      <span id="stat-critRate"></span>Crit Rate
+                  </p>
+                  <p>
+                      <i class="ra ra-focused-lightning"></i>
+                      <span id="stat-critDmg"></span>Crit Damage
+                  </p><br>
+                  <p>
+                      <i class="ra ra-dripping-blade"></i>
+                      <span id="stat-vamp"></span>Vampirism
+                  </p>
+                  <p>
+                      <i class="ra ra-player-dodge"></i>
+                      <span id="stat-speed"></span>Speed
+                  </p><br>
+                  <!-- Assuming Luck and Strength are static or updated elsewhere, they remain unchanged -->
+                  <p><i class="ra ra-clover"></i> <span id="player-luck">1</span>Luck</p>
+                  <p>
+                      <i class="ra ra-muscle-up"></i>
+                      <span id="player-strength">0</span>Strength
+                  </p>
               </div>
+          </div>
               <div class="box" id="bonus-stats"></div>
               <div id="buffBanePanel" class="box">
                 <div class="buffs-banes-panel">
@@ -244,7 +245,7 @@
             <div class="box-head">
               <h4>Vixens</h4>
             </div>
-            <div id="playerVixen"></div>
+            <div id="mainVixen"></div>
           </div>
         </div>
       </div>
@@ -316,56 +317,7 @@
     
   </main>
 
-  <section>
-
-  </section>
-
-  <!-- ===== Utility ===== -->
-  <!-- <div id="loading" class="game-container">
-    <div class="loader"></div>
-  </div> -->
-  <!-- Dev GUI Panel -->
-  <div id="devGuiPanel" style="display:flex; flex-direction:column; display: none;">
-    <!-- Add your buttons and inputs here -->
-    <button onclick="testChoiceModal()">Test Choice Modal</button>
-    <button onclick="mimicBattle('chest');">Start Combat</button>
-    <button onclick="openLvlupPanel()">Test Level Up</button>
-    <button onclick="openVixenPanel()">Test Vixen Panel</button>
-    <button onclick="openVixenModal()">Test Vixen Modal</button>
-    <button onclick="openEquipmentInfo()">Test Equipment Info</button>
-    <button onclick="openVixenInfo()">Test Vixen Info</button>
-    <button onclick="openConfirmationModal()">Test Confirmation Modal</button>
-    <button onclick="openMaterialModal()">Test Material Modal</button>
-    <button onclick="openMenuModal()">Test Menu Modal</button>
-    <button onclick="openCombatPanel()">Test Combat Panel</button>
-    <button onclick="openTavern()">Test Tavern</button>
-    <button onclick="openInventory()">Test Inventory</button>
-    <button onclick="openDungeonActivity()">Test Dungeon Activity</button>
-    <button onclick="progressReset()">Total Reset</button>
-    <!-- Add more elements as needed -->
-  </div>
-
-
   </main>
-  <script src="./assets/js/ext/elements.js"></script>
-  <script src="./assets/js/ext/keys.js"></script>
-  <script src="./assets/js/ext/tests.js"></script>
-  <script src="./assets/js/ext/utility.js"></script>
-  <script src="./assets/js/ext/music.js"></script>
-  <script src="./assets/js/ext/log.js"></script>
-  <script src="./assets/js/ext/messages.js"></script>
-  <script src="./assets/js/statusEffects.js"></script>
-  <script src="./assets/js/player.js"></script>
-  <script src="./assets/js/equipment.js"></script>
-  <script src="./assets/js/tavern.js"></script>
-  <script src="./assets/js/enemy.js"></script>
-  <script src="./assets/js/combat.js"></script>
-  <script src="./assets/js/vixens.js"></script>
-  <script src="./assets/js/events.js"></script>
-  <script src="./assets/js/dungeon.js"></script>
-  <script src="./assets/js/main.js"></script>
-  <script src="./assets/js/materials.js"></script>
-  <script src="./assets/js/lootGenerator.js"></script>
   </div>
 
 </html>
